@@ -5,21 +5,27 @@ import { computeGraphLayout } from '../utils/graphLayout';
 import { getSectorConfig } from '../utils/sectorConfig';
 import { useGraphViewport } from '../hooks/useGraphViewport';
 import { GraphControls } from './GraphControls';
-import { X, Zap, RotateCcw } from 'lucide-react';
+import { RecoveryPlannerScreen } from './RecoveryPlannerScreen';
+import { X, Zap, RotateCcw, ShieldCheck } from 'lucide-react';
 
 interface FailureTestScreenProps {
   dataset: InfrastructureDataset;
   initialAssetId?: string | null;
+  onOpenRecoveryPlan?: (assetId: string) => void;
 }
 
 export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
   dataset,
   initialAssetId,
+  onOpenRecoveryPlan,
 }) => {
   // Currently selected asset to fail (defaults to passed asset or first in dataset)
   const [failedAssetId, setFailedAssetId] = useState<string>(
     initialAssetId || dataset.assets[0]?.id || ''
   );
+
+  // Internal view toggle if not navigated externally
+  const [showRecoveryPlanner, setShowRecoveryPlanner] = useState<boolean>(false);
 
   // Simulation states
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -136,6 +142,16 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
   const whyAsset = whyNodeId ? dataset.assets.find((a) => a.id === whyNodeId) : null;
 
+  if (showRecoveryPlanner) {
+    return (
+      <RecoveryPlannerScreen
+        dataset={dataset}
+        initialFailureId={failedAssetId}
+        onBackToFailureTest={() => setShowRecoveryPlanner(false)}
+      />
+    );
+  }
+
   return (
     <div className="w-full h-full flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-hidden relative">
       {/* Top Header & Controls */}
@@ -204,6 +220,20 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
             className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
           >
             SHOW COMPLETE CASCADE
+          </button>
+
+          <button
+            onClick={() => {
+              if (onOpenRecoveryPlan) {
+                onOpenRecoveryPlan(failedAssetId);
+              } else {
+                setShowRecoveryPlanner(true);
+              }
+            }}
+            className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/40 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>RECOVERY PLAN →</span>
           </button>
 
           <button

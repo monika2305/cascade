@@ -6,6 +6,7 @@ import { UploadScreen } from './components/UploadScreen';
 import { NetworkScreen } from './components/NetworkScreen';
 import { WeakPointsScreen } from './components/WeakPointsScreen';
 import { FailureTestScreen } from './components/FailureTestScreen';
+import { RecoveryPlannerScreen } from './components/RecoveryPlannerScreen';
 import { ActionLabScreen } from './components/ActionLabScreen';
 import { AiAssistant } from './components/AiAssistant';
 
@@ -92,6 +93,19 @@ export function App() {
           <FailureTestScreen
             dataset={dataset}
             initialAssetId={selectedFailureAssetId}
+            onOpenRecoveryPlan={(assetId) => {
+              setSelectedFailureAssetId(assetId);
+              setActiveScreen('recovery-planner');
+            }}
+          />
+        )}
+
+        {/* CASCADE RECOVERY PLANNER */}
+        {activeScreen === 'recovery-planner' && dataset && (
+          <RecoveryPlannerScreen
+            dataset={dataset}
+            initialFailureId={selectedFailureAssetId}
+            onBackToFailureTest={() => setActiveScreen('failure-test')}
           />
         )}
 
