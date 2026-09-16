@@ -139,10 +139,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ dataset }) => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 select-none">
+    <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 select-none">
       {/* Popover */}
       {isOpen ? (
-        <div className="w-[340px] sm:w-[390px] h-[500px] bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="mr-4 w-[340px] sm:w-[390px] h-[520px] max-h-[85vh] bg-slate-900/98 border border-slate-700/90 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md">
           {/* Header */}
           <div className="px-4 py-3 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -257,13 +257,14 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ dataset }) => {
           </form>
         </div>
       ) : (
-        /* Floating Trigger Button */
+        /* Fixed Right-Edge Trigger Tab: ✦ ASK AI */
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-l-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-2xl shadow-cyan-500/40 transition-all hover:pr-4 cursor-pointer border-y border-l border-cyan-300/40 uppercase tracking-wider"
+          title="Ask CASCADE AI"
         >
-          <Sparkles className="w-4 h-4" />
-          <span>Ask CASCADE AI</span>
+          <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
+          <span className="text-[11px] font-black">✦ ASK AI</span>
         </button>
       )}
     </div>

@@ -1114,13 +1114,13 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               </g>
             </svg>
 
-            {/* Reusable Graph Controls — Positioned at bottom-left so Ask CASCADE AI doesn't cover it */}
+            {/* Reusable Graph Controls — Positioned at bottom-right */}
             <GraphControls
               onZoomIn={zoomIn}
               onZoomOut={zoomOut}
               onFit={() => fitGraph(null)}
               fitLabel={isFullCityView ? 'Fit City' : 'Fit Recovery'}
-              className="absolute left-6 bottom-16 z-20"
+              className="absolute right-6 bottom-16 z-20"
             />
 
             {/* 12. OPTIONAL RECOVERED & STILL-AFFECTED DETAIL DRAWER */}
@@ -1527,7 +1527,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               onZoomOut={zoomOut}
               onFit={() => fitGraph(isFullCityView ? null : relevantNodeIds)}
               fitLabel={isFullCityView ? 'Fit City' : 'Fit Impact'}
-              className="absolute left-6 bottom-6"
+              className="absolute right-6 bottom-6"
             />
           </div>
         </div>

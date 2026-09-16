@@ -9,10 +9,10 @@ export interface LayoutNode {
   level: number;
 }
 
-export const NODE_WIDTH = 200;
-export const NODE_HEIGHT = 58;
-export const LAYER_X_GAP = 290;
-export const LAYER_Y_GAP = 88;
+export const NODE_WIDTH = 210;
+export const NODE_HEIGHT = 64;
+export const LAYER_X_GAP = 300;
+export const LAYER_Y_GAP = 96;
 
 // Deterministic sector sorting priority (upstream providers first, critical downstream last)
 const SECTOR_PRIORITY: Record<string, number> = {

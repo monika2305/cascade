@@ -17,6 +17,7 @@ export interface UseGraphViewportOptions {
   minZoom?: number;
   maxZoom?: number;
   targetMaxZoom?: number;
+  targetOccupancy?: number;
 }
 
 /**
@@ -76,6 +77,7 @@ export function calculateGraphBounds(
  * Standardized Graph Viewport Hook:
  * - Deterministically centers and scales graph to fit container viewport width AND height
  * - Guarantees no important nodes start outside the visible screen
+ * - Scales comfortably to occupy 75-85% of available canvas
  * - Responds to window / container size changes via ResizeObserver
  * - Smooth pan, drag, and zoom controls
  */
@@ -85,13 +87,14 @@ export function useGraphViewport(
   options: UseGraphViewportOptions = {}
 ) {
   const {
-    padding = 75,
+    padding = 48,
     minZoom = 0.25,
-    maxZoom = 2.2,
-    targetMaxZoom = 1.05,
+    maxZoom = 2.5,
+    targetMaxZoom = 1.85,
+    targetOccupancy = 0.82,
   } = options;
 
-  const [zoom, setZoom] = useState<number>(0.85);
+  const [zoom, setZoom] = useState<number>(1.0);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -112,9 +115,11 @@ export function useGraphViewport(
       const rect = containerRef.current.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
 
+      hasUserInteractedRef.current = false;
+
       const bounds = calculateGraphBounds(layoutNodes, targetSubset);
-      const availWidth = Math.max(rect.width - padding * 2, 80);
-      const availHeight = Math.max(rect.height - padding * 2, 80);
+      const availWidth = Math.max(rect.width * targetOccupancy - padding, 80);
+      const availHeight = Math.max(rect.height * targetOccupancy - padding, 80);
 
       const scaleX = availWidth / bounds.graphWidth;
       const scaleY = availHeight / bounds.graphHeight;
@@ -127,7 +132,7 @@ export function useGraphViewport(
       setZoom(optimalZoom);
       setPan({ x: newPanX, y: newPanY });
     },
-    [containerRef, layoutNodes, padding, minZoom, targetMaxZoom]
+    [containerRef, layoutNodes, padding, minZoom, targetMaxZoom, targetOccupancy]
   );
 
   // Initial fit when layoutNodes or container changes
@@ -174,18 +179,10 @@ export function useGraphViewport(
     setZoom((prev) => Math.max(minZoom, +(prev * 0.8).toFixed(2)));
   }, [minZoom]);
 
-  const resetFit = useCallback(
-    (subsetIds?: string[] | Set<string> | null) => {
-      hasUserInteractedRef.current = false;
-      fitGraph(subsetIds !== undefined ? subsetIds : null);
-    },
-    [fitGraph]
-  );
-
   // Mouse pan handlers
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0) return; // only left click
       setIsDragging(true);
       hasUserInteractedRef.current = true;
       dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -211,14 +208,30 @@ export function useGraphViewport(
     setIsDragging(false);
   }, []);
 
+  // Wheel zoom around cursor
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
       e.preventDefault();
       hasUserInteractedRef.current = true;
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      setZoom((prev) => Math.max(minZoom, Math.min(maxZoom, +(prev * zoomFactor).toFixed(2))));
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
+      const nextZoom = Math.max(minZoom, Math.min(maxZoom, +(zoom * zoomFactor).toFixed(3)));
+
+      const graphPointX = (cursorX - pan.x) / zoom;
+      const graphPointY = (cursorY - pan.y) / zoom;
+
+      const newPanX = cursorX - graphPointX * nextZoom;
+      const newPanY = cursorY - graphPointY * nextZoom;
+
+      setZoom(nextZoom);
+      setPan({ x: newPanX, y: newPanY });
     },
-    [minZoom, maxZoom]
+    [containerRef, zoom, pan, minZoom, maxZoom]
   );
 
   return {
@@ -228,9 +241,8 @@ export function useGraphViewport(
     fitGraph,
     zoomIn,
     zoomOut,
-    resetFit,
-    setPan,
     setZoom,
+    setPan,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
