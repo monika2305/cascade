@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { InfrastructureDataset, Asset } from '../types/infrastructure';
 import { computeGraphLayout } from '../utils/graphLayout';
 import { getSectorConfig } from '../utils/sectorConfig';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw, X } from 'lucide-react';
+import { useGraphViewport } from '../hooks/useGraphViewport';
+import { GraphControls } from './GraphControls';
+import { X } from 'lucide-react';
 
 interface NetworkScreenProps {
   dataset: InfrastructureDataset;
@@ -10,20 +12,31 @@ interface NetworkScreenProps {
 
 export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-
-  // Pan & Zoom
-  const [zoom, setZoom] = useState<number>(0.9);
-  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const initializedRef = useRef<boolean>(false);
 
   // Layout calculation
   const layoutNodes = useMemo(() => {
     return computeGraphLayout(dataset);
   }, [dataset]);
+
+  // Unified Graph Viewport Hook
+  const {
+    zoom,
+    pan,
+    isDragging,
+    fitGraph,
+    zoomIn,
+    zoomOut,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleWheel,
+  } = useGraphViewport(containerRef, layoutNodes, {
+    padding: 80,
+    minZoom: 0.25,
+    maxZoom: 2.2,
+    targetMaxZoom: 1.05,
+  });
 
   // Compute dependency degrees
   const { inDegreeMap, outDegreeMap } = useMemo(() => {
@@ -43,104 +56,6 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
     }
     return { inDegreeMap: inDeg, outDegreeMap: outDeg };
   }, [dataset.assets, dataset.dependencies]);
-
-  // Graph bounding box
-  const getGraphBounds = useCallback(() => {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-
-    layoutNodes.forEach((node) => {
-      minX = Math.min(minX, node.x);
-      maxX = Math.max(maxX, node.x + node.width);
-      minY = Math.min(minY, node.y);
-      maxY = Math.max(maxY, node.y + node.height);
-    });
-
-    return {
-      minX,
-      maxX,
-      minY,
-      maxY,
-      graphWidth: maxX - minX,
-      graphHeight: maxY - minY,
-      cx: minX + (maxX - minX) / 2,
-      cy: minY + (maxY - minY) / 2,
-    };
-  }, [layoutNodes]);
-
-  // Readable Initial / Reset View: prioritizes immediate readability of nodes and names
-  const resetToReadableGraph = useCallback(() => {
-    if (!containerRef.current || layoutNodes.size === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-
-    const bounds = getGraphBounds();
-    const readableZoom = 0.88;
-    setZoom(readableZoom);
-
-    // Center on the upstream entry layers so nodes and connections are immediately readable
-    const targetX = bounds.minX + Math.min(bounds.graphWidth * 0.35, 420);
-    const targetY = bounds.cy;
-    setPan({
-      x: rect.width / 2 - targetX * readableZoom,
-      y: rect.height / 2 - targetY * readableZoom,
-    });
-  }, [layoutNodes, getGraphBounds]);
-
-  // Fit Network: fits the complete graph
-  const fitCompleteGraph = useCallback(() => {
-    if (!containerRef.current || layoutNodes.size === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-
-    const bounds = getGraphBounds();
-    const paddingX = 80;
-    const paddingY = 80;
-    const scaleX = (rect.width - paddingX) / bounds.graphWidth;
-    const scaleY = (rect.height - paddingY) / bounds.graphHeight;
-    const fitZoom = Math.max(0.3, Math.min(1.2, Math.min(scaleX, scaleY)));
-
-    setZoom(fitZoom);
-    setPan({
-      x: rect.width / 2 - bounds.cx * fitZoom,
-      y: rect.height / 2 - bounds.cy * fitZoom,
-    });
-  }, [layoutNodes, getGraphBounds]);
-
-  useEffect(() => {
-    if (!initializedRef.current && containerRef.current) {
-      resetToReadableGraph();
-      initializedRef.current = true;
-    }
-  }, [resetToReadableGraph]);
-
-  // Mouse pan handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-    panStartRef.current = { ...pan };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    setPan({
-      x: panStartRef.current.x + dx,
-      y: panStartRef.current.y + dy,
-    });
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
-    setZoom((prev) => Math.max(0.3, Math.min(2.5, +(prev * zoomFactor).toFixed(2))));
-  };
 
   return (
     <div className="w-full h-full flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-hidden relative">
@@ -318,42 +233,13 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
           </g>
         </svg>
 
-        {/* Clearly Visible Controls: [ + ] Zoom In, [ - ] Zoom Out, [ Fit ] Fit Network, [ Reset ] Reset View */}
-        <div className="absolute right-6 bottom-6 flex items-center gap-1.5 bg-slate-900/95 border border-slate-700/80 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl z-20">
-          <button
-            onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.15).toFixed(2)))}
-            className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Zoom In</span>
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.3, +(z - 0.15).toFixed(2)))}
-            className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Zoom Out</span>
-          </button>
-          <div className="w-[1px] h-4 bg-slate-800 my-auto" />
-          <button
-            onClick={fitCompleteGraph}
-            className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Fit Network"
-          >
-            <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Fit Network</span>
-          </button>
-          <button
-            onClick={resetToReadableGraph}
-            className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Reset View"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-            <span>Reset View</span>
-          </button>
-        </div>
+        {/* Graph Controls */}
+        <GraphControls
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onFit={() => fitGraph()}
+          className="absolute right-6 bottom-6"
+        />
 
         {/* Small Node Inspector Popup (only when a node is clicked) */}
         {selectedAsset && (

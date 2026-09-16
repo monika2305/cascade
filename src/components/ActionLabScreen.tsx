@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { InfrastructureDataset, Asset } from '../types/infrastructure';
 import {
   runIntervention,
@@ -9,14 +9,12 @@ import {
 } from '../utils/analysis';
 import { simulateCascade } from '../utils/cascade';
 import { computeGraphLayout } from '../utils/graphLayout';
+import { useGraphViewport } from '../hooks/useGraphViewport';
+import { GraphControls } from './GraphControls';
 import {
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  RotateCcw,
   Network,
   ArrowRight,
 } from 'lucide-react';
@@ -83,13 +81,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
   const [result, setResult] = useState<InterventionResult | null>(null);
   const [showAfterGraph, setShowAfterGraph] = useState<boolean>(false);
-
-  // Pan & Zoom for the After Graph
-  const [zoom, setZoom] = useState<number>(0.9);
-  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isFullCityView, setIsFullCityView] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Layout for after-graph
@@ -98,77 +90,42 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     return computeGraphLayout(result.modifiedDataset);
   }, [dataset, result]);
 
-  // Graph bounding box
-  const getGraphBounds = useCallback(() => {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
+  // Relevant node IDs for impact-focused initial view
+  const relevantNodeIds = useMemo(() => {
+    if (!result) return null;
+    const set = new Set<string>();
+    set.add(selectedFailureId);
+    result.savedAssetIds.forEach((id) => set.add(id));
+    result.afterCascade.affectedNodes.forEach((_, id) => set.add(id));
+    return set;
+  }, [result, selectedFailureId]);
 
-    layoutNodes.forEach((node) => {
-      minX = Math.min(minX, node.x);
-      maxX = Math.max(maxX, node.x + node.width);
-      minY = Math.min(minY, node.y);
-      maxY = Math.max(maxY, node.y + node.height);
-    });
+  // Unified Graph Viewport Hook
+  const {
+    zoom,
+    pan,
+    isDragging,
+    fitGraph,
+    zoomIn,
+    zoomOut,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleWheel,
+  } = useGraphViewport(containerRef, layoutNodes, {
+    padding: 75,
+    minZoom: 0.25,
+    maxZoom: 2.2,
+    targetMaxZoom: 1.05,
+  });
 
-    return {
-      minX,
-      maxX,
-      minY,
-      maxY,
-      graphWidth: maxX - minX,
-      graphHeight: maxY - minY,
-      cx: minX + (maxX - minX) / 2,
-      cy: minY + (maxY - minY) / 2,
-    };
-  }, [layoutNodes]);
-
-  // Readable Initial / Reset View
-  const resetToReadableGraph = useCallback(() => {
-    if (!containerRef.current || layoutNodes.size === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-
-    const bounds = getGraphBounds();
-    const readableZoom = 0.88;
-    setZoom(readableZoom);
-
-    const failedNode = layoutNodes.get(selectedFailureId);
-    const targetX = failedNode ? failedNode.x + failedNode.width / 2 : bounds.cx;
-    const targetY = failedNode ? failedNode.y + failedNode.height / 2 : bounds.cy;
-
-    setPan({
-      x: rect.width / 2 - targetX * readableZoom,
-      y: rect.height / 2 - targetY * readableZoom,
-    });
-  }, [layoutNodes, getGraphBounds, selectedFailureId]);
-
-  // Fit Network: fits the complete graph
-  const fitCompleteGraph = useCallback(() => {
-    if (!containerRef.current || layoutNodes.size === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-
-    const bounds = getGraphBounds();
-    const paddingX = 80;
-    const paddingY = 80;
-    const scaleX = (rect.width - paddingX) / bounds.graphWidth;
-    const scaleY = (rect.height - paddingY) / bounds.graphHeight;
-    const fitZoom = Math.max(0.3, Math.min(1.2, Math.min(scaleX, scaleY)));
-
-    setZoom(fitZoom);
-    setPan({
-      x: rect.width / 2 - bounds.cx * fitZoom,
-      y: rect.height / 2 - bounds.cy * fitZoom,
-    });
-  }, [layoutNodes, getGraphBounds]);
-
+  // When comparison graph opens, focus on the impact subgraph first
   useEffect(() => {
     if (showAfterGraph) {
-      resetToReadableGraph();
+      setIsFullCityView(false);
+      fitGraph(relevantNodeIds);
     }
-  }, [showAfterGraph, resetToReadableGraph]);
+  }, [showAfterGraph, fitGraph, relevantNodeIds]);
 
   const activeFix = availableFixes.find((f) => f.id === selectedFixId);
 
@@ -179,14 +136,37 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     setShowAfterGraph(false);
   };
 
-  // Node visual state in after graph: RED = still affected, GREEN = protected, DIM = unaffected
-  const getAfterNodeStatus = (assetId: string) => {
-    if (!result) return 'unaffected';
-    if (assetId === result.initialFailureId) return 'failed';
-    if (result.savedAssetIds.includes(assetId)) return 'protected';
-    if (result.afterCascade.affectedNodes.has(assetId)) return 'still_affected';
-    return 'unaffected';
+  // Sets of before and after affected IDs for exact status calculation
+  const beforeAffectedSet = useMemo(() => {
+    return new Set(Array.from(baselineCascade.affectedNodes.keys()));
+  }, [baselineCascade]);
+
+  const afterAffectedSet = useMemo(() => {
+    if (!result) return new Set<string>();
+    return new Set(Array.from(result.afterCascade.affectedNodes.keys()));
+  }, [result]);
+
+  // Calculate exact comparison status for every node:
+  // - 'failed': initial failed asset
+  // - 'saved': was affected before, but is NOT affected after
+  // - 'still_affected': remains affected after the fix
+  // - 'not_affected': unaffected in this cascade
+  const getComparisonStatus = (assetId: string): 'failed' | 'saved' | 'still_affected' | 'not_affected' => {
+    if (assetId === selectedFailureId) {
+      return 'failed';
+    }
+    const wasBefore = beforeAffectedSet.has(assetId);
+    const isAfter = afterAffectedSet.has(assetId);
+
+    if (wasBefore && !isAfter) {
+      return 'saved';
+    }
+    if (isAfter) {
+      return 'still_affected';
+    }
+    return 'not_affected';
   };
+
 
   const selectedAsset = assetMap.get(selectedFailureId);
 
@@ -460,49 +440,70 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
       ) : (
         /* Visual Graph View: RED = still affected, GREEN = protected, DIM = unaffected */
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col">
-          {/* Subheader bar */}
-          <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between text-xs shrink-0 z-10">
-            <div className="flex items-center gap-3">
-              <span className="font-black text-emerald-400 uppercase tracking-wider">
-                NETWORK COMPARISON
+          {/* Subheader bar: WHAT CHANGED AFTER THE FIX? */}
+          <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/95 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+            <div className="space-y-0.5">
+              <div className="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                WHAT CHANGED AFTER THE FIX?
+              </div>
+              <div className="text-xs text-slate-300 font-medium flex flex-wrap items-center gap-2.5">
+                <span>Before: <strong className="text-red-400 font-mono">{result?.beforeAffectedCount}</strong> affected</span>
+                <span>•</span>
+                <span>After: <strong className="text-emerald-400 font-mono">{result?.afterAffectedCount}</strong> affected</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-bold">🟢 {result?.savedAssetsCount} services saved</span>
+              </div>
+            </div>
+
+            {/* Simple Legend: Failed, Saved, Still Affected, Not Affected */}
+            <div className="flex items-center gap-3 text-xs bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
+              <span className="flex items-center gap-1.5 text-red-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span>Failed</span>
               </span>
-              <span className="text-slate-400 font-medium">
-                🔴 Still Affected • 🟢 Protected by Fix • ⬛ Unaffected
+              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>Saved</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-orange-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <span>Still Affected</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-slate-600" />
+                <span>Not Affected</span>
               </span>
             </div>
 
-            <button
-              onClick={() => setShowAfterGraph(false)}
-              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl cursor-pointer transition-colors"
-            >
-              Back to Actions
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const next = !isFullCityView;
+                  setIsFullCityView(next);
+                  fitGraph(next ? null : relevantNodeIds);
+                }}
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                title={isFullCityView ? 'Focus on cascade impact area' : 'View all assets in the city'}
+              >
+                {isFullCityView ? 'FOCUS IMPACT' : 'VIEW FULL CITY'}
+              </button>
+
+              <button
+                onClick={() => setShowAfterGraph(false)}
+                className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+              >
+                Back to Actions
+              </button>
+            </div>
           </div>
 
           <div
             ref={containerRef}
-            onMouseDown={(e) => {
-              if (e.button !== 0) return;
-              setIsDragging(true);
-              dragStartRef.current = { x: e.clientX, y: e.clientY };
-              panStartRef.current = { ...pan };
-            }}
-            onMouseMove={(e) => {
-              if (!isDragging) return;
-              const dx = e.clientX - dragStartRef.current.x;
-              const dy = e.clientY - dragStartRef.current.y;
-              setPan({
-                x: panStartRef.current.x + dx,
-                y: panStartRef.current.y + dy,
-              });
-            }}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-            onWheel={(e) => {
-              e.preventDefault();
-              const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
-              setZoom((prev) => Math.max(0.3, Math.min(2.5, +(prev * zoomFactor).toFixed(2))));
-            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
             className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
@@ -529,7 +530,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316" />
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
                 </marker>
                 <marker
                   id="after-arrow-protected"
@@ -563,19 +564,31 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const c2y = y2;
                   const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
-                  const tgtStatus = getAfterNodeStatus(dep.target);
+                  const srcStatus = getComparisonStatus(dep.source);
+                  const tgtStatus = getComparisonStatus(dep.target);
+
                   let strokeColor = '#1e293b';
                   let markerEnd = 'url(#after-arrow-dim)';
-                  let strokeWidth = 1;
+                  let strokeWidth = 1.2;
 
-                  if (tgtStatus === 'protected') {
+                  if (dep.id?.startsWith('redundant-')) {
+                    // Added backup path
+                    strokeColor = '#10b981';
+                    markerEnd = 'url(#after-arrow-protected)';
+                    strokeWidth = 2.5;
+                  } else if (tgtStatus === 'saved') {
+                    // Restored/protected connection to saved node
                     strokeColor = '#10b981';
                     markerEnd = 'url(#after-arrow-protected)';
                     strokeWidth = 2;
-                  } else if (tgtStatus === 'still_affected' || tgtStatus === 'failed') {
-                    strokeColor = '#f97316';
+                  } else if (
+                    (srcStatus === 'failed' || srcStatus === 'still_affected') &&
+                    (tgtStatus === 'failed' || tgtStatus === 'still_affected')
+                  ) {
+                    // Path actively transmitting cascade
+                    strokeColor = '#ef4444';
                     markerEnd = 'url(#after-arrow-affected)';
-                    strokeWidth = 1.8;
+                    strokeWidth = 2;
                   }
 
                   return (
@@ -594,21 +607,21 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 {/* Nodes */}
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
-                  const status = getAfterNodeStatus(asset.id);
+                  const status = getComparisonStatus(asset.id);
 
-                  let bgColor = '#0f172a';
+                  let bgColor = '#090d16';
                   let borderColor = '#1e293b';
                   let textColor = '#475569';
-                  let badgeText = '';
-                  let badgeBg = '';
+                  let badgeText = 'NOT AFFECTED';
+                  let badgeBg = 'bg-slate-800/80 text-slate-400 border border-slate-700/60';
 
                   if (status === 'failed') {
                     bgColor = '#450a0a';
                     borderColor = '#ef4444';
                     textColor = '#fee2e2';
                     badgeText = 'FAILED';
-                    badgeBg = 'bg-red-500 text-white';
-                  } else if (status === 'protected') {
+                    badgeBg = 'bg-red-600 text-white font-black';
+                  } else if (status === 'saved') {
                     bgColor = '#064e3b';
                     borderColor = '#10b981';
                     textColor = '#d1fae5';
@@ -618,8 +631,8 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     bgColor = '#431407';
                     borderColor = '#ea580c';
                     textColor = '#ffedd5';
-                    badgeText = 'AFFECTED';
-                    badgeBg = 'bg-orange-500 text-white';
+                    badgeText = 'STILL AFFECTED';
+                    badgeBg = 'bg-orange-600 text-white font-bold';
                   }
 
                   return (
@@ -628,7 +641,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                       transform={`translate(${node.x}, ${node.y})`}
                       className="cursor-pointer group"
                     >
-                      {status === 'protected' && (
+                      {status === 'saved' && (
                         <rect
                           x={-3}
                           y={-3}
@@ -650,7 +663,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         rx={10}
                         fill={bgColor}
                         stroke={borderColor}
-                        strokeWidth={status !== 'unaffected' ? 2 : 1}
+                        strokeWidth={status !== 'not_affected' ? 2 : 1}
                       />
 
                       <text
@@ -669,7 +682,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                       <text
                         x={14}
                         y={42}
-                        fill={status !== 'unaffected' ? '#94a3b8' : '#334155'}
+                        fill={status !== 'not_affected' ? '#94a3b8' : '#334155'}
                         fontSize="10"
                         fontWeight="500"
                         className="pointer-events-none"
@@ -677,62 +690,33 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         {asset.sector}
                       </text>
 
-                      {badgeText && (
-                        <foreignObject
-                          x={node.width - 76}
-                          y={8}
-                          width={68}
-                          height={20}
+                      {/* Status Badge */}
+                      <foreignObject
+                        x={node.width - (status === 'still_affected' ? 95 : 80)}
+                        y={8}
+                        width={status === 'still_affected' ? 90 : 74}
+                        height={20}
+                      >
+                        <div
+                          className={`text-[8px] px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
                         >
-                          <div
-                            className={`text-[8px] font-black px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
-                          >
-                            {badgeText}
-                          </div>
-                        </foreignObject>
-                      )}
+                          {badgeText}
+                        </div>
+                      </foreignObject>
                     </g>
                   );
                 })}
               </g>
             </svg>
 
-            {/* Clearly Visible Controls: [ + ] Zoom In, [ - ] Zoom Out, [ Fit ] Fit Network, [ Reset ] Reset View */}
-            <div className="absolute right-6 bottom-6 flex items-center gap-1.5 bg-slate-900/95 border border-slate-700/80 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl z-20">
-              <button
-                onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.15).toFixed(2)))}
-                className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Zoom In"
-              >
-                <ZoomIn className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Zoom In</span>
-              </button>
-              <button
-                onClick={() => setZoom((z) => Math.max(0.3, +(z - 0.15).toFixed(2)))}
-                className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Zoom Out"
-              >
-                <ZoomOut className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Zoom Out</span>
-              </button>
-              <div className="w-[1px] h-4 bg-slate-800 my-auto" />
-              <button
-                onClick={fitCompleteGraph}
-                className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Fit Network"
-              >
-                <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Fit Network</span>
-              </button>
-              <button
-                onClick={resetToReadableGraph}
-                className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Reset View"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                <span>Reset View</span>
-              </button>
-            </div>
+            {/* Standardized Graph Controls */}
+            <GraphControls
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+              onFit={() => fitGraph(isFullCityView ? null : relevantNodeIds)}
+              fitLabel={isFullCityView ? 'Fit City' : 'Fit Impact'}
+              className="absolute right-6 bottom-6"
+            />
           </div>
         </div>
       )}
