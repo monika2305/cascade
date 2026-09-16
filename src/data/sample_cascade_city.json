@@ -1,0 +1,540 @@
+{
+  "name": "CASCADE Demo City",
+  "isSample": true,
+  "assets": [
+    {
+      "id": "PWR-01",
+      "name": "Main Grid Station",
+      "sector": "Power",
+      "subtype": "Grid Station",
+      "status": "operational",
+      "capacity": 200,
+      "currentLoad": 150
+    },
+    {
+      "id": "PWR-02",
+      "name": "Central Substation",
+      "sector": "Power",
+      "subtype": "Substation",
+      "status": "operational",
+      "capacity": 120,
+      "currentLoad": 90
+    },
+    {
+      "id": "PWR-03",
+      "name": "East Substation",
+      "sector": "Power",
+      "subtype": "Substation",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 60
+    },
+    {
+      "id": "PWR-04",
+      "name": "Distribution Feeder",
+      "sector": "Power",
+      "subtype": "Feeder",
+      "status": "operational",
+      "capacity": 80,
+      "currentLoad": 50
+    },
+    {
+      "id": "PWR-05",
+      "name": "West Substation",
+      "sector": "Power",
+      "subtype": "Substation",
+      "status": "operational",
+      "capacity": 90,
+      "currentLoad": 50
+    },
+    {
+      "id": "WTR-01",
+      "name": "Main Water Treatment Plant",
+      "sector": "Water",
+      "subtype": "Treatment Plant",
+      "status": "operational",
+      "capacity": 150,
+      "currentLoad": 100
+    },
+    {
+      "id": "WTR-02",
+      "name": "Central Water Pump",
+      "sector": "Water",
+      "subtype": "Pump Station",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 70
+    },
+    {
+      "id": "WTR-03",
+      "name": "East Water Pump",
+      "sector": "Water",
+      "subtype": "Pump Station",
+      "status": "operational",
+      "capacity": 90,
+      "currentLoad": 55
+    },
+    {
+      "id": "WTR-04",
+      "name": "Main Water Tank",
+      "sector": "Water",
+      "subtype": "Storage Tank",
+      "status": "operational",
+      "capacity": 120,
+      "currentLoad": 80
+    },
+    {
+      "id": "WTR-05",
+      "name": "Secondary Water Tank",
+      "sector": "Water",
+      "subtype": "Storage Tank",
+      "status": "operational",
+      "capacity": 80,
+      "currentLoad": 40
+    },
+    {
+      "id": "WTR-06",
+      "name": "West Water Pump",
+      "sector": "Water",
+      "subtype": "Pump Station",
+      "status": "operational",
+      "capacity": 70,
+      "currentLoad": 35
+    },
+    {
+      "id": "TRN-01",
+      "name": "Central Bridge",
+      "sector": "Transport",
+      "subtype": "Bridge",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 85
+    },
+    {
+      "id": "TRN-02",
+      "name": "Main Road Junction",
+      "sector": "Transport",
+      "subtype": "Road Junction",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 70
+    },
+    {
+      "id": "TRN-03",
+      "name": "Emergency Access Road",
+      "sector": "Transport",
+      "subtype": "Access Road",
+      "status": "operational",
+      "capacity": 60,
+      "currentLoad": 30
+    },
+    {
+      "id": "TRN-04",
+      "name": "East Corridor",
+      "sector": "Transport",
+      "subtype": "Corridor",
+      "status": "operational",
+      "capacity": 70,
+      "currentLoad": 40
+    },
+    {
+      "id": "TRN-05",
+      "name": "West Overpass",
+      "sector": "Transport",
+      "subtype": "Overpass",
+      "status": "operational",
+      "capacity": 60,
+      "currentLoad": 20
+    },
+    {
+      "id": "HLT-01",
+      "name": "City General Hospital",
+      "sector": "Health",
+      "subtype": "Hospital",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 80
+    },
+    {
+      "id": "HLT-02",
+      "name": "Trauma Centre",
+      "sector": "Health",
+      "subtype": "Trauma Centre",
+      "status": "operational",
+      "capacity": 60,
+      "currentLoad": 45
+    },
+    {
+      "id": "HLT-03",
+      "name": "Community Health Centre",
+      "sector": "Health",
+      "subtype": "Health Centre",
+      "status": "operational",
+      "capacity": 50,
+      "currentLoad": 20
+    },
+    {
+      "id": "HLT-04",
+      "name": "West Clinic",
+      "sector": "Health",
+      "subtype": "Clinic",
+      "status": "operational",
+      "capacity": 40,
+      "currentLoad": 15
+    },
+    {
+      "id": "COM-01",
+      "name": "Main Communication Hub",
+      "sector": "Communication",
+      "subtype": "Communication Hub",
+      "status": "operational",
+      "capacity": 100,
+      "currentLoad": 75
+    },
+    {
+      "id": "COM-02",
+      "name": "Emergency Radio Tower",
+      "sector": "Communication",
+      "subtype": "Radio Tower",
+      "status": "operational",
+      "capacity": 50,
+      "currentLoad": 20
+    },
+    {
+      "id": "COM-03",
+      "name": "East Communication Tower",
+      "sector": "Communication",
+      "subtype": "Communication Tower",
+      "status": "operational",
+      "capacity": 60,
+      "currentLoad": 30
+    },
+    {
+      "id": "COM-04",
+      "name": "Data Relay Station",
+      "sector": "Communication",
+      "subtype": "Relay Station",
+      "status": "operational",
+      "capacity": 40,
+      "currentLoad": 15
+    },
+    {
+      "id": "EMS-01",
+      "name": "Emergency Response Centre",
+      "sector": "Emergency Services",
+      "subtype": "Response Centre",
+      "status": "operational",
+      "capacity": 80,
+      "currentLoad": 55
+    },
+    {
+      "id": "EMS-02",
+      "name": "Central Fire Station",
+      "sector": "Emergency Services",
+      "subtype": "Fire Station",
+      "status": "operational",
+      "capacity": 50,
+      "currentLoad": 25
+    },
+    {
+      "id": "EMS-03",
+      "name": "East Fire Station",
+      "sector": "Emergency Services",
+      "subtype": "Fire Station",
+      "status": "operational",
+      "capacity": 50,
+      "currentLoad": 20
+    },
+    {
+      "id": "EMS-04",
+      "name": "Ambulance Station",
+      "sector": "Emergency Services",
+      "subtype": "Ambulance Station",
+      "status": "operational",
+      "capacity": 40,
+      "currentLoad": 25
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "DEP-001",
+      "source": "PWR-01",
+      "target": "PWR-02",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-002",
+      "source": "PWR-01",
+      "target": "PWR-03",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-003",
+      "source": "PWR-01",
+      "target": "PWR-05",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-004",
+      "source": "PWR-02",
+      "target": "PWR-04",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-005",
+      "source": "PWR-02",
+      "target": "WTR-02",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-006",
+      "source": "PWR-02",
+      "target": "COM-01",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-007",
+      "source": "PWR-02",
+      "target": "HLT-01",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-008",
+      "source": "PWR-03",
+      "target": "WTR-03",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-009",
+      "source": "PWR-03",
+      "target": "COM-03",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-010",
+      "source": "PWR-03",
+      "target": "EMS-03",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-011",
+      "source": "PWR-05",
+      "target": "WTR-06",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-012",
+      "source": "PWR-05",
+      "target": "HLT-04",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-013",
+      "source": "PWR-04",
+      "target": "TRN-02",
+      "type": "electricity_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-014",
+      "source": "WTR-01",
+      "target": "WTR-02",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-015",
+      "source": "WTR-01",
+      "target": "WTR-03",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-016",
+      "source": "WTR-01",
+      "target": "WTR-06",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-017",
+      "source": "WTR-02",
+      "target": "WTR-04",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-018",
+      "source": "WTR-03",
+      "target": "WTR-05",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-019",
+      "source": "WTR-04",
+      "target": "HLT-01",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-020",
+      "source": "WTR-04",
+      "target": "EMS-02",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-021",
+      "source": "WTR-05",
+      "target": "HLT-03",
+      "type": "water_supply",
+      "strength": 1
+    },
+    {
+      "id": "DEP-022",
+      "source": "TRN-01",
+      "target": "TRN-03",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-023",
+      "source": "TRN-01",
+      "target": "TRN-02",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-024",
+      "source": "TRN-03",
+      "target": "HLT-01",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-025",
+      "source": "TRN-03",
+      "target": "EMS-01",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-026",
+      "source": "TRN-02",
+      "target": "EMS-04",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-027",
+      "source": "TRN-04",
+      "target": "EMS-03",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-028",
+      "source": "TRN-04",
+      "target": "HLT-02",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-029",
+      "source": "TRN-05",
+      "target": "HLT-04",
+      "type": "physical_access",
+      "strength": 1
+    },
+    {
+      "id": "DEP-030",
+      "source": "HLT-01",
+      "target": "EMS-04",
+      "type": "coordination",
+      "strength": 1
+    },
+    {
+      "id": "DEP-031",
+      "source": "HLT-01",
+      "target": "EMS-01",
+      "type": "coordination",
+      "strength": 1
+    },
+    {
+      "id": "DEP-032",
+      "source": "COM-01",
+      "target": "EMS-01",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-033",
+      "source": "COM-01",
+      "target": "EMS-02",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-034",
+      "source": "COM-01",
+      "target": "HLT-01",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-035",
+      "source": "COM-01",
+      "target": "COM-04",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-036",
+      "source": "COM-02",
+      "target": "EMS-01",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-037",
+      "source": "COM-03",
+      "target": "EMS-03",
+      "type": "communication_link",
+      "strength": 1
+    },
+    {
+      "id": "DEP-038",
+      "source": "EMS-01",
+      "target": "EMS-04",
+      "type": "coordination",
+      "strength": 1
+    },
+    {
+      "id": "DEP-039",
+      "source": "EMS-01",
+      "target": "EMS-02",
+      "type": "coordination",
+      "strength": 1
+    },
+    {
+      "id": "DEP-040",
+      "source": "EMS-01",
+      "target": "EMS-03",
+      "type": "coordination",
+      "strength": 1
+    }
+  ]
+}

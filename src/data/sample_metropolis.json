@@ -1,0 +1,181 @@
+{
+  "name": "Metropolis Core Infrastructure",
+  "assets": [
+    {
+      "id": "pwr-sub-north",
+      "name": "North Central Substation",
+      "sector": "Power",
+      "type": "Primary Substation",
+      "status": "operational",
+      "capacity": 500,
+      "currentLoad": 380
+    },
+    {
+      "id": "pwr-grid-west",
+      "name": "West River Hydro Plant",
+      "sector": "Power",
+      "type": "Hydroelectric Plant",
+      "status": "operational",
+      "capacity": 750,
+      "currentLoad": 610
+    },
+    {
+      "id": "wtr-plant-main",
+      "name": "East Valley Water Treatment",
+      "sector": "Water",
+      "type": "Treatment Facility",
+      "status": "operational",
+      "capacity": 1000,
+      "currentLoad": 820
+    },
+    {
+      "id": "wtr-pump-district4",
+      "name": "District 4 High-Pressure Pump",
+      "sector": "Water",
+      "type": "Pumping Station",
+      "status": "operational",
+      "capacity": 400,
+      "currentLoad": 310
+    },
+    {
+      "id": "med-metro-hospital",
+      "name": "Metropolitan Central Hospital",
+      "sector": "Health",
+      "type": "Level 1 Trauma Center",
+      "status": "operational",
+      "capacity": 650,
+      "currentLoad": 590
+    },
+    {
+      "id": "med-community-clinic",
+      "name": "Northside Health Clinic",
+      "sector": "Health",
+      "type": "Urgent Care",
+      "status": "operational",
+      "capacity": 120,
+      "currentLoad": 85
+    },
+    {
+      "id": "trn-metro-line-a",
+      "name": "Line A Central Subway System",
+      "sector": "Transport",
+      "type": "Electrified Rail",
+      "status": "operational"
+    },
+    {
+      "id": "trn-traffic-control",
+      "name": "Urban Traffic Signal Hub",
+      "sector": "Transport",
+      "type": "Signaling Network",
+      "status": "operational"
+    },
+    {
+      "id": "com-central-fiber",
+      "name": "City Telecom Central Exchange",
+      "sector": "Communication",
+      "type": "Optical Hub",
+      "status": "operational"
+    },
+    {
+      "id": "com-emergency-radio",
+      "name": "Public Safety Radio Relay",
+      "sector": "Communication",
+      "type": "Radio Tower",
+      "status": "operational"
+    },
+    {
+      "id": "emg-dispatch-hq",
+      "name": "911 Central Emergency Dispatch",
+      "sector": "Emergency Services",
+      "type": "Command Center",
+      "status": "operational"
+    },
+    {
+      "id": "emg-station-12",
+      "name": "Downtown Fire & Rescue Station 12",
+      "sector": "Emergency Services",
+      "type": "Fire Rescue Depot",
+      "status": "operational"
+    }
+  ],
+  "dependencies": [
+    {
+      "source": "pwr-sub-north",
+      "target": "wtr-plant-main",
+      "type": "supplies_electricity",
+      "strength": 5
+    },
+    {
+      "source": "pwr-sub-north",
+      "target": "med-metro-hospital",
+      "type": "primary_power_feed",
+      "strength": 5
+    },
+    {
+      "source": "pwr-sub-north",
+      "target": "trn-metro-line-a",
+      "type": "traction_power",
+      "strength": 4
+    },
+    {
+      "source": "pwr-grid-west",
+      "target": "pwr-sub-north",
+      "type": "grid_interconnection",
+      "strength": 5
+    },
+    {
+      "source": "wtr-plant-main",
+      "target": "wtr-pump-district4",
+      "type": "treated_water_feed",
+      "strength": 5
+    },
+    {
+      "source": "wtr-plant-main",
+      "target": "med-metro-hospital",
+      "type": "potable_and_cooling_water",
+      "strength": 4
+    },
+    {
+      "source": "pwr-sub-north",
+      "target": "com-central-fiber",
+      "type": "power_supply",
+      "strength": 5
+    },
+    {
+      "source": "com-central-fiber",
+      "target": "emg-dispatch-hq",
+      "type": "dispatch_data_link",
+      "strength": 5
+    },
+    {
+      "source": "com-central-fiber",
+      "target": "trn-traffic-control",
+      "type": "signal_telemetry",
+      "strength": 4
+    },
+    {
+      "source": "com-emergency-radio",
+      "target": "emg-station-12",
+      "type": "tactical_radio_link",
+      "strength": 5
+    },
+    {
+      "source": "emg-dispatch-hq",
+      "target": "emg-station-12",
+      "type": "incident_dispatch",
+      "strength": 5
+    },
+    {
+      "source": "trn-traffic-control",
+      "target": "emg-station-12",
+      "type": "emergency_vehicle_preemption",
+      "strength": 3
+    },
+    {
+      "source": "wtr-pump-district4",
+      "target": "med-community-clinic",
+      "type": "water_supply",
+      "strength": 3
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Downtown District Micro-Grid",
+  "nodes": [
+    { "id": "grid-main", "name": "Downtown Substation", "category": "energy", "type": "Substation", "status": "operational" },
+    { "id": "water-main", "name": "Pumping Unit A", "category": "water", "type": "Pumping Unit", "status": "operational" },
+    { "id": "clinic-central", "name": "First Care Clinic", "category": "hospital", "type": "Clinic", "status": "operational" },
+    { "id": "radio-central", "name": "Dispatch Tower", "category": "telecom", "type": "Tower", "status": "operational" }
+  ],
+  "edges": [
+    { "from": "grid-main", "to": "water-main", "relation": "powers", "weight": 5 },
+    { "from": "grid-main", "to": "clinic-central", "relation": "powers", "weight": 5 },
+    { "from": "grid-main", "to": "radio-central", "relation": "powers", "weight": 4 },
+    { "from": "water-main", "to": "clinic-central", "relation": "coolant", "weight": 3 }
+  ]
+}

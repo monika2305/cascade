@@ -1,0 +1,9 @@
+source,source_name,source_sector,target,target_name,target_sector,type,strength
+pwr-harbor-sub,Harbor Substation 115kV,Power,wtr-coastal-desal,Coastal Desalination Facility,Water,high_voltage_feed,5
+pwr-harbor-sub,Harbor Substation 115kV,Power,cell-coastal-tower,Harbor 5G & LTE Tower,Communication,power_supply,4
+wtr-coastal-desal,Coastal Desalination Facility,Water,hosp-st-jude,St. Jude Trauma Hospital,Health,potable_main,5
+pwr-harbor-sub,Harbor Substation 115kV,Power,hosp-st-jude,St. Jude Trauma Hospital,Health,emergency_feeder,5
+cell-coastal-tower,Harbor 5G & LTE Tower,Communication,ems-harbor-dispatch,Harbor EMS Station 4,Emergency Services,cellular_telemetry,4
+ems-harbor-dispatch,Harbor EMS Station 4,Emergency Services,hosp-st-jude,St. Jude Trauma Hospital,Health,patient_transport_route,4
+pwr-harbor-sub,Harbor Substation 115kV,Power,tunnel-ventilation,Bay Tunnel Exhaust Fans,Transport,motor_power,5
+tunnel-ventilation,Bay Tunnel Exhaust Fans,Transport,ems-harbor-dispatch,Harbor EMS Station 4,Emergency Services,evacuation_route_access,4
