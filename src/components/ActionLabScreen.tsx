@@ -21,6 +21,7 @@ import {
   Pause,
   RotateCcw,
   SkipForward,
+  X,
 } from 'lucide-react';
 
 interface ActionLabScreenProps {
@@ -94,22 +95,55 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
   // Recovery Simulator State
   const [recoveryIndex, setRecoveryIndex] = useState<number>(-1); // -1 = initial failure state
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [highlightMode, setHighlightMode] = useState<'all' | 'still_affected'>('all');
+  const [detailDrawer, setDetailDrawer] = useState<'recovered' | 'still_affected' | null>(null);
 
-  // Layout for after-graph / recovery graph
-  const layoutNodes = useMemo(() => {
-    if (!result) return computeGraphLayout(dataset);
-    return computeGraphLayout(result.modifiedDataset);
-  }, [dataset, result]);
-
-  // Relevant node IDs for impact-focused initial view
+  // Relevant node IDs for impact-focused recovery network
   const relevantNodeIds = useMemo(() => {
-    if (!result) return null;
+    if (!result) return new Set<string>();
     const set = new Set<string>();
     set.add(selectedFailureId);
     result.savedAssetIds.forEach((id) => set.add(id));
     result.afterCascade.affectedNodes.forEach((_, id) => set.add(id));
+    baselineCascade.affectedNodes.forEach((_, id) => set.add(id));
+
+    // Include backup provider endpoints if any redundant link was added
+    (result.modifiedDataset || dataset).dependencies.forEach((d) => {
+      if (d.id?.startsWith('redundant-')) {
+        set.add(d.source);
+        set.add(d.target);
+      }
+    });
+
     return set;
-  }, [result, selectedFailureId]);
+  }, [result, selectedFailureId, baselineCascade, dataset]);
+
+  // Focused Subgraph Dataset for Recovery Simulator (hides unrelated nodes to prevent empty space & clutter)
+  const recoveryDataset = useMemo(() => {
+    if (!result || isFullCityView) return result?.modifiedDataset || dataset;
+
+    const baseDs = result.modifiedDataset || dataset;
+    const relevantAssets = baseDs.assets.filter((a) => relevantNodeIds.has(a.id));
+    const relevantDependencies = baseDs.dependencies.filter(
+      (d) => relevantNodeIds.has(d.source) && relevantNodeIds.has(d.target)
+    );
+
+    return {
+      ...baseDs,
+      assets: relevantAssets,
+      dependencies: relevantDependencies,
+    };
+  }, [result, dataset, relevantNodeIds, isFullCityView]);
+
+  // Layout for graph views
+  const layoutNodes = useMemo(() => {
+    if (viewMode === 'recovery') {
+      return computeGraphLayout(recoveryDataset);
+    }
+    if (!result) return computeGraphLayout(dataset);
+    return computeGraphLayout(result.modifiedDataset);
+  }, [viewMode, recoveryDataset, result, dataset]);
 
   // Unified Graph Viewport Hook
   const {
@@ -124,19 +158,18 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 75,
+    padding: 60,
     minZoom: 0.25,
     maxZoom: 2.2,
-    targetMaxZoom: 1.05,
+    targetMaxZoom: 1.15,
   });
 
-  // When switching into comparison or recovery graph, auto-fit to the impact subgraph
+  // Auto-fit when switching views or toggling full city
   useEffect(() => {
     if (viewMode === 'comparison' || viewMode === 'recovery') {
-      setIsFullCityView(false);
-      fitGraph(relevantNodeIds);
+      fitGraph(null);
     }
-  }, [viewMode, fitGraph, relevantNodeIds]);
+  }, [viewMode, fitGraph, isFullCityView, layoutNodes]);
 
   const activeFix = availableFixes.find((f) => f.id === selectedFixId);
 
@@ -156,8 +189,17 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     return new Set(Array.from(result.afterCascade.affectedNodes.keys()));
   }, [result]);
 
+  const stillAffectedIds = useMemo(() => {
+    if (!result) return [];
+    return Array.from(result.afterCascade.affectedNodes.keys()).filter(
+      (id) => id !== selectedFailureId
+    );
+  }, [result, selectedFailureId]);
+
   // Comparison status in "View What Changed"
-  const getComparisonStatus = (assetId: string): 'failed' | 'saved' | 'still_affected' | 'not_affected' => {
+  const getComparisonStatus = (
+    assetId: string
+  ): 'failed' | 'saved' | 'still_affected' | 'not_affected' => {
     if (assetId === selectedFailureId) {
       return 'failed';
     }
@@ -200,6 +242,15 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     return set;
   }, [result, recoveryIndex, recoverySteps, baselineCascade]);
 
+  const isComplete = result
+    ? recoveryIndex >= recoverySteps.length - 1
+    : false;
+
+  const activeRecoveredCount = currentlyRecoveredSet.size;
+  const currentAffectedCount = result
+    ? result.beforeAffectedCount - activeRecoveredCount
+    : 0;
+
   // Auto-play timer for recovery animation
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -215,7 +266,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
         }
         return prev + 1;
       });
-    }, 900);
+    }, 1100);
 
     return () => clearInterval(timer);
   }, [isAutoPlaying, recoverySteps.length]);
@@ -223,7 +274,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
   // Recovery status for each node in Recovery Simulator
   const getRecoveryNodeStatus = (
     assetId: string
-  ): 'failed' | 'recovered' | 'affected' | 'not_affected' => {
+  ): 'failed' | 'recovered' | 'affected' | 'backup_source' | 'not_affected' => {
     if (assetId === selectedFailureId) {
       return 'failed';
     }
@@ -233,44 +284,104 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     if (beforeAffectedSet.has(assetId)) {
       return 'affected';
     }
+    // Check if this node is an unaffected backup provider
+    if (result) {
+      const isBackupSrc = result.modifiedDataset.dependencies.some(
+        (d) => d.id?.startsWith('redundant-') && d.source === assetId
+      );
+      if (isBackupSrc) return 'backup_source';
+    }
     return 'not_affected';
   };
 
   const selectedAsset = assetMap.get(selectedFailureId);
 
+  // Dynamic 1-2 line recovery story generated from actual dependencies
+  const currentRecoveryStory = useMemo(() => {
+    if (!result) return '';
+    if (recoveryIndex < 0) {
+      return `INITIAL STATE • ${selectedAsset?.name || 'Service'} failed. All ${
+        result.beforeAffectedCount
+      } downstream services are currently offline.`;
+    }
+
+    const curStep = recoverySteps[Math.min(recoveryIndex, recoverySteps.length - 1)];
+    const justRecoveredIds = result.savedAssetIds.filter(
+      (id) => (baselineCascade.affectedNodes.get(id)?.step ?? 1) === curStep
+    );
+
+    const justRecoveredNames = justRecoveredIds.map(
+      (id) => assetMap.get(id)?.name || id
+    );
+
+    // Find direct dependent targets that benefit from these recovered nodes
+    const directDependents = (result.modifiedDataset || dataset).dependencies
+      .filter(
+        (d) => justRecoveredIds.includes(d.source) && result.savedAssetIds.includes(d.target)
+      )
+      .map((d) => assetMap.get(d.target)?.name || d.target);
+
+    const uniqueDependents = Array.from(new Set(directDependents));
+
+    if (recoveryIndex >= recoverySteps.length - 1) {
+      return `RECOVERY COMPLETE • ${result.savedAssetsCount} services recovered. ${
+        result.afterAffectedCount
+      } services remain affected.`;
+    }
+
+    if (justRecoveredNames.length > 0) {
+      if (uniqueDependents.length > 0) {
+        return `STAGE ${recoveryIndex + 1} • ${justRecoveredNames.slice(0, 2).join(' and ')} recovered. Restores supply path allowing ${uniqueDependents.slice(0, 2).join(' and ')} to operate again.`;
+      }
+      return `STAGE ${recoveryIndex + 1} • ${justRecoveredNames.slice(0, 2).join(' and ')} recovered through the active fix.`;
+    }
+
+    return `STAGE ${recoveryIndex + 1} • Intervention active, restoring operational capability.`;
+  }, [
+    result,
+    recoveryIndex,
+    recoverySteps,
+    baselineCascade,
+    assetMap,
+    selectedAsset,
+    dataset,
+  ]);
+
   return (
     <div className="w-full h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-3 border-b border-slate-800/80 bg-slate-950/90 flex flex-wrap items-center justify-between gap-3 shrink-0">
-        <div>
-          <h1 className="text-lg font-black text-white tracking-wide uppercase">
-            ACTION LAB
-          </h1>
-          <p className="text-[11px] text-slate-400">
-            "What can we do?"
-          </p>
-        </div>
+      {/* Header (ViewMode actions & comparison) */}
+      {viewMode !== 'recovery' && (
+        <div className="px-6 py-3 border-b border-slate-800/80 bg-slate-950/90 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div>
+            <h1 className="text-lg font-black text-white tracking-wide uppercase">
+              ACTION LAB
+            </h1>
+            <p className="text-[11px] text-slate-400">
+              "What can we do?"
+            </p>
+          </div>
 
-        {/* Failed Asset Context Selector */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-          <span className="text-slate-400 font-medium">Scenario:</span>
-          <select
-            value={selectedFailureId}
-            onChange={(e) => {
-              setSelectedFailureId(e.target.value);
-              setResult(null);
-              setViewMode('actions');
-            }}
-            className="bg-slate-950 text-white font-bold rounded px-2 py-0.5 border border-slate-700 focus:outline-none focus:border-cyan-500 cursor-pointer"
-          >
-            {dataset.assets.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name} ({a.sector})
-              </option>
-            ))}
-          </select>
+          {/* Failed Asset Context Selector */}
+          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
+            <span className="text-slate-400 font-medium">Scenario:</span>
+            <select
+              value={selectedFailureId}
+              onChange={(e) => {
+                setSelectedFailureId(e.target.value);
+                setResult(null);
+                setViewMode('actions');
+              }}
+              className="bg-slate-950 text-white font-bold rounded px-2 py-0.5 border border-slate-700 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              {dataset.assets.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.sector})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* VIEW 1: COMPACT MAIN ACTION LAB (Fits on desktop without tall scrolling) */}
       {viewMode === 'actions' && (
@@ -457,6 +568,8 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     setViewMode('recovery');
                     setRecoveryIndex(-1);
                     setIsAutoPlaying(false);
+                    setHighlightMode('all');
+                    setDetailDrawer(null);
                   }}
                   className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md cursor-pointer transition-colors flex items-center gap-1.5"
                 >
@@ -469,66 +582,184 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
         </div>
       )}
 
-      {/* VIEW 2: RECOVERY SIMULATOR (PART 2 WOW FEATURE) */}
+      {/* VIEW 2: OVERHAULED CITY RECOVERY SIMULATOR */}
       {viewMode === 'recovery' && result && (
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col">
-          {/* Recovery Header */}
-          <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/95 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-black text-emerald-400 uppercase tracking-wider">
-                  CITY RECOVERY
-                </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
-                  Simulator
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Watch how services recover after the selected action.
-              </p>
-            </div>
-
-            {/* Simple Real Recovery Summary Strip */}
-            <div className="flex items-center gap-3 bg-slate-950/90 px-3.5 py-1.5 rounded-xl border border-slate-800 text-xs">
-              <div className="text-center">
-                <span className="text-red-400 font-bold font-mono">{result.beforeAffectedCount}</span>{' '}
-                <span className="text-slate-400 text-[10px]">Affected Before</span>
-              </div>
-              <span className="text-slate-600">→</span>
-              <div className="text-center">
-                <span className="text-amber-400 font-bold font-mono">{result.afterAffectedCount}</span>{' '}
-                <span className="text-slate-400 text-[10px]">Still Affected</span>
-              </div>
-              <span className="text-slate-700">|</span>
-              <div className="text-emerald-400 font-black">
-                ✓ {result.savedAssetsCount} SERVICES RECOVERED
+          {/* 1. TOP SUMMARY — HERO HEADER */}
+          <div className="px-6 py-3 border-b border-slate-800 bg-slate-950/95 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+            <div className="flex items-center gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-black text-white uppercase tracking-wider">
+                    CITY RECOVERY
+                  </h1>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase">
+                    Simulator
+                  </span>
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+                  <span className="text-red-400 font-bold flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {selectedAsset?.name || 'Service'} failed
+                  </span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-300">
+                    <strong className="text-red-400 font-mono">{result.beforeAffectedCount}</strong> affected before
+                    {' '}→{' '}
+                    <strong className="text-amber-400 font-mono">{result.afterAffectedCount}</strong> still affected
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Back Button */}
-            <button
-              onClick={() => {
-                setIsAutoPlaying(false);
-                setViewMode('actions');
-              }}
-              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
-            >
-              Back to Actions
-            </button>
+            {/* The strongest visual hero number */}
+            <div className="flex items-center gap-3">
+              <div className="bg-emerald-500/15 border-2 border-emerald-500/50 px-4 py-1.5 rounded-xl shadow-lg shadow-emerald-950/30 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-emerald-400/80">
+                    Protection Impact
+                  </div>
+                  <div className="text-xl font-black text-emerald-400 font-mono leading-none">
+                    ✓ {activeRecoveredCount} RECOVERED
+                    {activeRecoveredCount < result.savedAssetsCount && (
+                      <span className="text-xs text-emerald-300/70 ml-1 font-normal">
+                        / {result.savedAssetsCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsAutoPlaying(false);
+                  setViewMode('actions');
+                }}
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+              >
+                Back to Actions
+              </button>
+            </div>
           </div>
 
-          {/* Recovery Stepper Control Bar */}
-          <div className="px-6 py-2.5 bg-slate-900/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10">
-            {/* Step Controls */}
+          {/* 2. RECOVERY PROGRESS BAR */}
+          <div className="px-6 py-2 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
+            {/* 3-Stage Progress Indicator */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl">
+              {/* Stage 1: FAILURE */}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                    recoveryIndex === -1
+                      ? 'bg-red-500 text-white ring-2 ring-red-400/40 animate-pulse'
+                      : 'bg-red-950 text-red-400 border border-red-800'
+                  }`}
+                >
+                  1
+                </div>
+                <span
+                  className={`font-black uppercase tracking-wider text-[11px] ${
+                    recoveryIndex === -1 ? 'text-red-400' : 'text-slate-400'
+                  }`}
+                >
+                  FAILURE
+                </span>
+              </div>
+
+              {/* Connecting Line 1 */}
+              <div
+                className={`flex-1 h-0.5 rounded transition-colors ${
+                  recoveryIndex >= 0 ? 'bg-cyan-500' : 'bg-slate-800'
+                }`}
+              />
+
+              {/* Stage 2: FIX APPLIED */}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${
+                    recoveryIndex >= 0 && !isComplete
+                      ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-400/40 animate-pulse'
+                      : isComplete
+                      ? 'bg-cyan-950 text-cyan-400 border border-cyan-700'
+                      : 'bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  2
+                </div>
+                <span
+                  className={`font-black uppercase tracking-wider text-[11px] ${
+                    recoveryIndex >= 0 ? 'text-cyan-400' : 'text-slate-500'
+                  }`}
+                >
+                  FIX APPLIED
+                </span>
+              </div>
+
+              {/* Connecting Line 2 */}
+              <div
+                className={`flex-1 h-0.5 rounded transition-colors ${
+                  isComplete ? 'bg-emerald-500' : 'bg-slate-800'
+                }`}
+              />
+
+              {/* Stage 3: RECOVERY */}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${
+                    isComplete
+                      ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40'
+                      : recoveryIndex >= 0
+                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse'
+                      : 'bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  {isComplete ? '✓' : '3'}
+                </div>
+                <span
+                  className={`font-black uppercase tracking-wider text-[11px] ${
+                    isComplete
+                      ? 'text-emerald-400'
+                      : recoveryIndex >= 0
+                      ? 'text-emerald-300'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  RECOVERY
+                </span>
+              </div>
+            </div>
+
+            {/* View Mode Toggle: Focus on Recovery vs Full City */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  if (recoveryIndex >= recoverySteps.length - 1) {
+                  const next = !isFullCityView;
+                  setIsFullCityView(next);
+                }}
+                className={`px-3 py-1 text-xs font-bold rounded-lg border transition-colors cursor-pointer ${
+                  isFullCityView
+                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                }`}
+              >
+                {isFullCityView ? 'FOCUS RECOVERY ONLY' : 'VIEW FULL CITY'}
+              </button>
+            </div>
+          </div>
+
+          {/* 8. CONTROLS TOOLBAR */}
+          <div className="px-6 py-2.5 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10">
+            <div className="flex items-center gap-2">
+              {/* PRIMARY: START RECOVERY */}
+              <button
+                onClick={() => {
+                  if (isComplete) {
                     setRecoveryIndex(-1);
                   }
                   setIsAutoPlaying(!isAutoPlaying);
                 }}
-                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow cursor-pointer transition-all flex items-center gap-1.5"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-950/40 cursor-pointer transition-all active:scale-98 flex items-center gap-1.5"
               >
                 {isAutoPlaying ? (
                   <>
@@ -538,98 +769,79 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 ) : (
                   <>
                     <Play className="w-3.5 h-3.5 fill-slate-950" />
-                    <span>START RECOVERY</span>
+                    <span>{isComplete ? 'REPLAY RECOVERY' : 'START RECOVERY'}</span>
                   </>
                 )}
               </button>
 
+              {/* SECONDARY: NEXT → */}
               <button
                 onClick={() => {
                   setIsAutoPlaying(false);
                   setRecoveryIndex((prev) => Math.min(prev + 1, recoverySteps.length - 1));
                 }}
-                disabled={recoveryIndex >= recoverySteps.length - 1}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
+                disabled={isComplete}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
               >
-                <span>NEXT STEP</span>
+                <span>NEXT</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
+              {/* SECONDARY: COMPLETE */}
               <button
                 onClick={() => {
                   setIsAutoPlaying(false);
                   setRecoveryIndex(recoverySteps.length - 1);
                 }}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
+                disabled={isComplete}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
               >
                 <SkipForward className="w-3.5 h-3.5" />
-                <span>SHOW COMPLETE RECOVERY</span>
+                <span>COMPLETE</span>
               </button>
 
+              {/* SECONDARY: RESET */}
               <button
                 onClick={() => {
                   setIsAutoPlaying(false);
                   setRecoveryIndex(-1);
+                  setHighlightMode('all');
                 }}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-bold text-xs rounded-xl border border-slate-800 cursor-pointer transition-colors flex items-center gap-1"
+                className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-bold text-xs rounded-xl border border-slate-800 cursor-pointer transition-colors flex items-center gap-1"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>RESET</span>
               </button>
             </div>
 
-            {/* Current Phase Description & Status Colors Legend */}
-            <div className="flex items-center gap-4 text-xs">
-              <div className="text-slate-300 font-medium">
-                {recoveryIndex < 0 ? (
-                  <span className="text-amber-400 font-bold">
-                    Phase 1: Initial Failure State ({result.beforeAffectedCount} affected)
-                  </span>
-                ) : recoveryIndex >= recoverySteps.length - 1 ? (
-                  <span className="text-emerald-400 font-bold">
-                    ✓ Phase Complete: {result.savedAssetsCount} services recovered
-                  </span>
-                ) : (
-                  <span className="text-cyan-300 font-bold">
-                    Recovering: {currentlyRecoveredSet.size} of {result.savedAssetsCount} restored
-                  </span>
-                )}
-              </div>
-
-              {/* Status Colors: Red = Failed, Orange = Affected, Green = Recovered/Saved, Black = Not Affected */}
-              <div className="hidden sm:flex items-center gap-3 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px]">
-                <span className="flex items-center gap-1 text-red-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-                  <span>Failed</span>
+            {/* Honest Status Breakdown & Filter Toggle */}
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-lg text-xs">
+                  ✓ {activeRecoveredCount} Recovered
                 </span>
-                <span className="flex items-center gap-1 text-orange-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-orange-500" />
-                  <span>Affected</span>
-                </span>
-                <span className="flex items-center gap-1 text-emerald-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>Recovered</span>
-                </span>
-                <span className="flex items-center gap-1 text-slate-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-slate-600" />
-                  <span>Not Affected</span>
+                <span className="font-bold text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-lg text-xs">
+                  ⚠ {currentAffectedCount} Still Down
                 </span>
               </div>
 
+              {/* Toggle to highlight still-affected nodes */}
               <button
-                onClick={() => {
-                  const next = !isFullCityView;
-                  setIsFullCityView(next);
-                  fitGraph(next ? null : relevantNodeIds);
-                }}
-                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-[11px] rounded-lg border border-slate-700 cursor-pointer transition-colors"
+                onClick={() =>
+                  setHighlightMode((prev) => (prev === 'still_affected' ? 'all' : 'still_affected'))
+                }
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
+                  highlightMode === 'still_affected'
+                    ? 'bg-orange-500/25 border-orange-500 text-orange-300 ring-1 ring-orange-500'
+                    : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+                }`}
               >
-                {isFullCityView ? 'FOCUS IMPACT' : 'VIEW FULL CITY'}
+                {highlightMode === 'still_affected' ? 'SHOW ALL' : 'SHOW STILL AFFECTED'}
               </button>
             </div>
           </div>
 
-          {/* Recovery Graph Viewport */}
+          {/* RECOVERY GRAPH VIEWPORT */}
           <div
             ref={containerRef}
             onMouseDown={handleMouseDown}
@@ -676,11 +888,22 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 >
                   <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
                 </marker>
+                <marker
+                  id="rec-arrow-backup"
+                  viewBox="0 0 10 10"
+                  refX="10"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#06b6d4" />
+                </marker>
               </defs>
 
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* Connections */}
-                {(result.modifiedDataset || dataset).dependencies.map((dep, idx) => {
+                {/* 10. REDUCED EDGE CLUTTER: Connections */}
+                {recoveryDataset.dependencies.map((dep, idx) => {
                   const src = layoutNodes.get(dep.source);
                   const tgt = layoutNodes.get(dep.target);
                   if (!src || !tgt) return null;
@@ -700,27 +923,42 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const tgtStatus = getRecoveryNodeStatus(dep.target);
                   const isRedundant = dep.id?.startsWith('redundant-');
 
+                  const isConnectedToHovered =
+                    hoveredNodeId &&
+                    (dep.source === hoveredNodeId || dep.target === hoveredNodeId);
+                  const isDimmedByHover = hoveredNodeId && !isConnectedToHovered;
+
                   let strokeColor = '#1e293b';
                   let markerEnd = 'url(#rec-arrow-dim)';
                   let strokeWidth = 1.2;
+                  let strokeOpacity = isDimmedByHover ? 0.15 : 0.4;
 
                   if (isRedundant) {
                     if (recoveryIndex >= 0) {
                       strokeColor = '#10b981';
                       markerEnd = 'url(#rec-arrow-recovered)';
-                      strokeWidth = 2.5;
+                      strokeWidth = 3;
+                      strokeOpacity = isDimmedByHover ? 0.25 : 1;
                     } else {
                       strokeColor = '#334155';
                       strokeWidth = 1.5;
                     }
                   } else if (tgtStatus === 'recovered') {
+                    // Feed line into a recovered node illuminates strong green
                     strokeColor = '#10b981';
                     markerEnd = 'url(#rec-arrow-recovered)';
-                    strokeWidth = 2;
+                    strokeWidth = 2.4;
+                    strokeOpacity = isDimmedByHover ? 0.25 : 1;
                   } else if (tgtStatus === 'affected' || tgtStatus === 'failed') {
                     strokeColor = '#ea580c';
                     markerEnd = 'url(#rec-arrow-affected)';
                     strokeWidth = 1.8;
+                    strokeOpacity = isDimmedByHover ? 0.2 : 0.85;
+                  }
+
+                  if (isConnectedToHovered) {
+                    strokeWidth = 3.5;
+                    strokeOpacity = 1;
                   }
 
                   return (
@@ -730,21 +968,29 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                       fill="none"
                       stroke={strokeColor}
                       strokeWidth={strokeWidth}
+                      strokeOpacity={strokeOpacity}
                       markerEnd={markerEnd}
                       strokeDasharray={isRedundant ? '4 3' : undefined}
+                      className="transition-all duration-300"
                     />
                   );
                 })}
 
-                {/* Nodes */}
+                {/* 5. NODE DESIGN: Clean, Legible, Unmistakable */}
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
                   const status = getRecoveryNodeStatus(asset.id);
 
+                  // If user clicked "SHOW STILL AFFECTED", dim other nodes
+                  const isDimmedByHighlight =
+                    highlightMode === 'still_affected' && status !== 'affected' && status !== 'failed';
+
+                  const isHovered = hoveredNodeId === asset.id;
+
                   let bgColor = '#090d16';
                   let borderColor = '#1e293b';
                   let textColor = '#475569';
-                  let badgeText = 'NOT AFFECTED';
+                  let badgeText = 'SAFE';
                   let badgeBg = 'bg-slate-800/80 text-slate-400 border border-slate-700/60';
 
                   if (status === 'failed') {
@@ -757,22 +1003,33 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     bgColor = '#064e3b';
                     borderColor = '#10b981';
                     textColor = '#d1fae5';
-                    badgeText = 'RECOVERED';
+                    badgeText = '✓ RECOVERED';
                     badgeBg = 'bg-emerald-500 text-slate-950 font-black';
                   } else if (status === 'affected') {
                     bgColor = '#431407';
                     borderColor = '#ea580c';
                     textColor = '#ffedd5';
-                    badgeText = 'AFFECTED';
+                    badgeText = isComplete && afterAffectedSet.has(asset.id) ? 'STILL DOWN' : 'AFFECTED';
                     badgeBg = 'bg-orange-600 text-white font-bold';
+                  } else if (status === 'backup_source') {
+                    bgColor = '#083344';
+                    borderColor = '#06b6d4';
+                    textColor = '#cffafe';
+                    badgeText = 'BACKUP FEED';
+                    badgeBg = 'bg-cyan-500 text-slate-950 font-black';
                   }
 
                   return (
                     <g
                       key={asset.id}
                       transform={`translate(${node.x}, ${node.y})`}
-                      className="cursor-pointer group"
+                      onMouseEnter={() => setHoveredNodeId(asset.id)}
+                      onMouseLeave={() => setHoveredNodeId(null)}
+                      className={`cursor-pointer transition-all duration-300 ${
+                        isDimmedByHighlight ? 'opacity-30' : 'opacity-100'
+                      }`}
                     >
+                      {/* Pulsing glow for recovered nodes */}
                       {status === 'recovered' && (
                         <rect
                           x={-3}
@@ -787,6 +1044,20 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         />
                       )}
 
+                      {/* Hover ring */}
+                      {isHovered && (
+                        <rect
+                          x={-4}
+                          y={-4}
+                          width={node.width + 8}
+                          height={node.height + 8}
+                          rx={14}
+                          fill="none"
+                          stroke="#38bdf8"
+                          strokeWidth={2}
+                        />
+                      )}
+
                       <rect
                         x={0}
                         y={0}
@@ -798,36 +1069,38 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         strokeWidth={status !== 'not_affected' ? 2 : 1}
                       />
 
+                      {/* Asset Name */}
                       <text
                         x={14}
-                        y={24}
+                        y={26}
                         fill={textColor}
                         fontSize="12"
                         fontWeight="700"
-                        className="pointer-events-none"
+                        className="pointer-events-none select-none"
                       >
-                        {asset.name.length > 17
-                          ? asset.name.substring(0, 15) + '...'
+                        {asset.name.length > 18
+                          ? asset.name.substring(0, 16) + '...'
                           : asset.name}
                       </text>
 
+                      {/* Asset Sector */}
                       <text
                         x={14}
-                        y={42}
+                        y={44}
                         fill={status !== 'not_affected' ? '#94a3b8' : '#334155'}
                         fontSize="10"
                         fontWeight="500"
-                        className="pointer-events-none"
+                        className="pointer-events-none select-none"
                       >
                         {asset.sector}
                       </text>
 
                       {/* Status Badge */}
                       <foreignObject
-                        x={node.width - (status === 'not_affected' ? 95 : 85)}
+                        x={node.width - (status === 'recovered' ? 100 : 88)}
                         y={8}
-                        width={status === 'not_affected' ? 90 : 79}
-                        height={20}
+                        width={status === 'recovered' ? 92 : 80}
+                        height={22}
                       >
                         <div
                           className={`text-[8px] px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
@@ -841,14 +1114,121 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               </g>
             </svg>
 
-            {/* Reusable Graph Controls */}
+            {/* Reusable Graph Controls — Positioned at bottom-left so Ask CASCADE AI doesn't cover it */}
             <GraphControls
               onZoomIn={zoomIn}
               onZoomOut={zoomOut}
-              onFit={() => fitGraph(isFullCityView ? null : relevantNodeIds)}
-              fitLabel={isFullCityView ? 'Fit City' : 'Fit Impact'}
-              className="absolute right-6 bottom-6"
+              onFit={() => fitGraph(null)}
+              fitLabel={isFullCityView ? 'Fit City' : 'Fit Recovery'}
+              className="absolute left-6 bottom-16 z-20"
             />
+
+            {/* 12. OPTIONAL RECOVERED & STILL-AFFECTED DETAIL DRAWER */}
+            {detailDrawer && (
+              <div className="absolute top-4 right-6 z-30 w-80 max-h-[75vh] bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl p-4 flex flex-col backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    {detailDrawer === 'recovered' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-orange-400" />
+                    )}
+                    <span className="font-black text-xs uppercase tracking-wider text-white">
+                      {detailDrawer === 'recovered'
+                        ? `Recovered Services (${result.savedAssetIds.length})`
+                        : `Still Affected Services (${stillAffectedIds.length})`}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setDetailDrawer(null)}
+                    className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto mt-2 space-y-1.5 text-xs pr-1">
+                  {detailDrawer === 'recovered'
+                    ? result.savedAssetIds.map((id) => {
+                        const a = assetMap.get(id);
+                        return (
+                          <div
+                            key={id}
+                            className="p-2 rounded-lg bg-slate-950/80 border border-slate-800/80 flex items-center justify-between"
+                          >
+                            <div>
+                              <div className="font-bold text-white text-xs">{a?.name || id}</div>
+                              <div className="text-[10px] text-slate-400">{a?.sector}</div>
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                              ✓ SAVED
+                            </span>
+                          </div>
+                        );
+                      })
+                    : stillAffectedIds.map((id) => {
+                        const a = assetMap.get(id);
+                        return (
+                          <div
+                            key={id}
+                            className="p-2 rounded-lg bg-slate-950/80 border border-slate-800/80 flex items-center justify-between"
+                          >
+                            <div>
+                              <div className="font-bold text-white text-xs">{a?.name || id}</div>
+                              <div className="text-[10px] text-slate-400">{a?.sector}</div>
+                            </div>
+                            <span className="text-[10px] font-black text-orange-400 bg-orange-500/20 px-1.5 py-0.5 rounded">
+                              ⚠ STILL DOWN
+                            </span>
+                          </div>
+                        );
+                      })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 7. SIMPLE RECOVERY STORY AT BOTTOM & COMPLETION ACTIONS */}
+          <div className="px-6 py-2.5 bg-slate-950/95 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  isComplete
+                    ? 'bg-emerald-400'
+                    : recoveryIndex >= 0
+                    ? 'bg-cyan-400 animate-ping'
+                    : 'bg-red-400'
+                }`}
+              />
+              <div className="text-slate-300 font-medium leading-tight truncate">
+                {currentRecoveryStory}
+              </div>
+            </div>
+
+            {/* Completion Moment Quick Action Buttons */}
+            {isComplete && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() =>
+                    setDetailDrawer((prev) => (prev === 'recovered' ? null : 'recovered'))
+                  }
+                  className="px-3 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold text-xs rounded-lg border border-emerald-500/40 cursor-pointer transition-colors"
+                >
+                  SEE RECOVERED SERVICES ({result.savedAssetsCount})
+                </button>
+
+                {result.afterAffectedCount > 0 && (
+                  <button
+                    onClick={() =>
+                      setDetailDrawer((prev) => (prev === 'still_affected' ? null : 'still_affected'))
+                    }
+                    className="px-3 py-1 bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 font-bold text-xs rounded-lg border border-orange-500/40 cursor-pointer transition-colors"
+                  >
+                    SEE WHAT IS STILL AFFECTED ({result.afterAffectedCount})
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1104,7 +1484,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         fill={textColor}
                         fontSize="12"
                         fontWeight="700"
-                        className="pointer-events-none"
+                        className="pointer-events-none select-none"
                       >
                         {asset.name.length > 17
                           ? asset.name.substring(0, 15) + '...'
@@ -1117,7 +1497,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         fill={status !== 'not_affected' ? '#94a3b8' : '#334155'}
                         fontSize="10"
                         fontWeight="500"
-                        className="pointer-events-none"
+                        className="pointer-events-none select-none"
                       >
                         {asset.sector}
                       </text>
@@ -1147,7 +1527,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               onZoomOut={zoomOut}
               onFit={() => fitGraph(isFullCityView ? null : relevantNodeIds)}
               fitLabel={isFullCityView ? 'Fit City' : 'Fit Impact'}
-              className="absolute right-6 bottom-6"
+              className="absolute left-6 bottom-6"
             />
           </div>
         </div>
