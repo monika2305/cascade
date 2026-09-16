@@ -10,9 +10,17 @@ import {
   ShieldCheck,
   GitFork,
   LogOut,
+  Radio,
 } from 'lucide-react';
 
-export type ScreenId = 'upload' | 'network' | 'weak-points' | 'failure-test' | 'recovery-planner' | 'action-lab';
+export type ScreenId =
+  | 'upload'
+  | 'network'
+  | 'weak-points'
+  | 'failure-test'
+  | 'command'
+  | 'recovery-planner'
+  | 'action-lab';
 
 interface SidebarProps {
   activeScreen: ScreenId;
@@ -38,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'network', label: 'City Network', icon: <Network className="w-4 h-4" />, requiresData: true },
     { id: 'weak-points', label: 'Weak Points', icon: <AlertTriangle className="w-4 h-4" />, requiresData: true },
     { id: 'failure-test', label: 'Failure Test', icon: <Zap className="w-4 h-4" />, requiresData: true },
+    { id: 'command', label: 'Resilience Command', icon: <Radio className="w-4 h-4 text-rose-400" />, requiresData: true },
     { id: 'recovery-planner', label: 'Recovery Planner', icon: <ShieldCheck className="w-4 h-4" />, requiresData: true },
     { id: 'action-lab', label: 'Action Lab', icon: <Wrench className="w-4 h-4" />, requiresData: true },
   ];

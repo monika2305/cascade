@@ -8,6 +8,7 @@ import { WeakPointsScreen } from './components/WeakPointsScreen';
 import { FailureTestScreen } from './components/FailureTestScreen';
 import { RecoveryPlannerScreen } from './components/RecoveryPlannerScreen';
 import { ActionLabScreen } from './components/ActionLabScreen';
+import { CityResilienceCommandScreen } from './components/CityResilienceCommandScreen';
 import { AiAssistant } from './components/AiAssistant';
 
 interface UserSession {
@@ -96,6 +97,28 @@ export function App() {
             onOpenRecoveryPlan={(assetId) => {
               setSelectedFailureAssetId(assetId);
               setActiveScreen('recovery-planner');
+            }}
+          />
+        )}
+
+        {/* CITY RESILIENCE COMMAND */}
+        {activeScreen === 'command' && dataset && (
+          <CityResilienceCommandScreen
+            dataset={dataset}
+            userRole={user.role}
+            initialFailureId={selectedFailureAssetId}
+            onSelectFailureId={(assetId) => setSelectedFailureAssetId(assetId)}
+            onNavigateToActionLab={(assetId) => {
+              setSelectedFailureAssetId(assetId);
+              setActiveScreen('action-lab');
+            }}
+            onNavigateToRecoveryPlan={(assetId) => {
+              setSelectedFailureAssetId(assetId);
+              setActiveScreen('recovery-planner');
+            }}
+            onNavigateToFailureTest={(assetId) => {
+              setSelectedFailureAssetId(assetId);
+              setActiveScreen('failure-test');
             }}
           />
         )}
