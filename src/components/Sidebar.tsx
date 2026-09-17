@@ -10,6 +10,7 @@ import {
   GitFork,
   LogOut,
   Radio,
+  Globe2,
 } from 'lucide-react';
 
 export type ScreenId =
@@ -18,6 +19,7 @@ export type ScreenId =
   | 'weak-points'
   | 'failure-test'
   | 'command'
+  | 'city-twin'
   | 'action-lab';
 
 interface SidebarProps {
@@ -45,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'weak-points', label: 'Weak Points', icon: <AlertTriangle className="w-4 h-4" />, requiresData: true },
     { id: 'failure-test', label: 'Failure Test', icon: <Zap className="w-4 h-4" />, requiresData: true },
     { id: 'command', label: 'Resilience Command', icon: <Radio className="w-4 h-4 text-rose-400" />, requiresData: true },
+    { id: 'city-twin', label: 'City Twin', icon: <Globe2 className="w-4 h-4 text-cyan-400" />, requiresData: true },
     { id: 'action-lab', label: 'Action Lab', icon: <Wrench className="w-4 h-4" />, requiresData: true },
   ];
 

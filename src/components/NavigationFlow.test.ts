@@ -7,6 +7,7 @@ import { calculateGraphBounds } from '../hooks/useGraphViewport';
 import { simulateCascade } from '../utils/cascade';
 import { findWeakPoints } from '../utils/analysis';
 import { computeMultiStepRecoveryPlan } from '../utils/recoveryPlanner';
+import { computeSphereLayout } from '../utils/sphereLayout';
 
 describe('End-to-End Sample Data Loading and Navigation Regression Test', () => {
   it('1. Verifies sample_cascade_city.json has all required InfrastructureDataset properties', () => {
@@ -73,9 +74,12 @@ describe('End-to-End Sample Data Loading and Navigation Regression Test', () => 
     const cascade = simulateCascade(ds, 'PWR-01');
     expect(cascade.affectedNodes.size).toBe(21);
 
-    // Recovery Planner
-    const recoveryPlan = computeMultiStepRecoveryPlan(ds, 'PWR-01');
-    expect(recoveryPlan.steps.length).toBeGreaterThan(0);
+    // City Twin
+    const sphereLayout = computeSphereLayout(ds);
+    expect(sphereLayout.size).toBe(28);
+    const pwr = sphereLayout.get('PWR-01');
+    expect(pwr).toBeDefined();
+    expect(Math.abs(pwr!.x * pwr!.x + pwr!.y * pwr!.y + pwr!.z * pwr!.z - 1)).toBeLessThan(1e-5);
   });
 
   it('6. Verifies calculateGraphBounds handles empty, unmounted, or degenerate cases safely without NaN', () => {

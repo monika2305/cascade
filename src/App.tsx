@@ -8,6 +8,7 @@ import { WeakPointsScreen } from './components/WeakPointsScreen';
 import { FailureTestScreen } from './components/FailureTestScreen';
 import { ActionLabScreen } from './components/ActionLabScreen';
 import { CityResilienceCommandScreen } from './components/CityResilienceCommandScreen';
+import { CityTwinScreen } from './components/CityTwinScreen';
 import { AiAssistant } from './components/AiAssistant';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -113,6 +114,20 @@ export function App() {
                 setSelectedFailureAssetId(assetId);
                 setActiveScreen('failure-test');
               }}
+            />
+          )}
+
+          {/* CITY TWIN */}
+          {activeScreen === 'city-twin' && dataset && (
+            <CityTwinScreen
+              dataset={dataset}
+              selectedFailureId={selectedFailureAssetId}
+              onSelectFailureId={(assetId) => setSelectedFailureAssetId(assetId)}
+              onNavigateToFailureTest={(assetId) => {
+                if (assetId) setSelectedFailureAssetId(assetId);
+                setActiveScreen('failure-test');
+              }}
+              onNavigateToHome={() => setActiveScreen('upload')}
             />
           )}
 
