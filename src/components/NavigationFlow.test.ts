@@ -6,7 +6,6 @@ import { computeGraphLayout } from '../utils/graphLayout';
 import { calculateGraphBounds } from '../hooks/useGraphViewport';
 import { simulateCascade } from '../utils/cascade';
 import { findWeakPoints } from '../utils/analysis';
-import { computeMultiStepRecoveryPlan } from '../utils/recoveryPlanner';
 import { computeSphereLayout } from '../utils/sphereLayout';
 
 describe('End-to-End Sample Data Loading and Navigation Regression Test', () => {

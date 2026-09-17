@@ -155,8 +155,19 @@ export function App() {
           )}
         </ErrorBoundary>
 
-        {/* Optional AI Assistant Floating Chatbot */}
-        <AiAssistant dataset={dataset} />
+        {/* CASCADE AI Robot Assistant Copilot */}
+        <AiAssistant
+          dataset={dataset}
+          activeScreen={activeScreen}
+          selectedFailureId={selectedFailureAssetId}
+          onNavigateToScreen={(screen, assetId) => {
+            if (assetId) setSelectedFailureAssetId(assetId);
+            setActiveScreen(screen);
+          }}
+          onSelectAsset={(assetId) => {
+            setSelectedFailureAssetId(assetId);
+          }}
+        />
       </main>
     </div>
   );
