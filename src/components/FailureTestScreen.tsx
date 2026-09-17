@@ -140,88 +140,94 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
   return (
     <div className="w-full h-full flex-1 flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden relative">
-      {/* 1. Standardized Fixed-Height Header matching City Network (h-14) */}
-      <div className="h-14 px-6 border-b border-[#182c3f] bg-[#071321]/90 flex items-center justify-between shrink-0 z-10 backdrop-blur-md">
-        <div className="flex items-center gap-4 min-w-0">
-          <div>
+      {/* 1. Standardized Header Bar with Dedicated Spacing */}
+      <div className="min-h-[56px] px-6 py-2 border-b border-[#182c3f] bg-[#071321]/90 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 shrink-0 z-10 backdrop-blur-md">
+        {/* Left / Info Group: Title, Trigger, and Metrics */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 min-w-0">
+          {/* Title with Eyebrow */}
+          <div className="shrink-0">
             <div className="flex items-center gap-1.5 text-[9px] font-medium tracking-[0.2em] text-[#b9cecf] uppercase">
               <span className="w-3 h-px bg-[#addcd7]" />
               <span>Simulation Lab</span>
             </div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wider">
-                Failure Cascade Analysis
-              </h1>
-              {/* Trigger Outage Dropdown */}
-              <div className="flex items-center gap-1.5 text-xs text-[#a9b9c3]">
-                <span className="text-[11px] text-[#8096a4]">Trigger:</span>
-                <select
-                  value={failedAssetId}
-                  onChange={(e) => {
-                    setFailedAssetId(e.target.value);
-                    handleReset();
-                  }}
-                  className="bg-[#0a1726] text-[#f2f4f0] font-medium text-xs rounded-lg px-2 py-0.5 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer max-w-[200px] truncate"
-                >
-                  {dataset.assets.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.sector})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <h1 className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wider whitespace-nowrap">
+              Failure Cascade Analysis
+            </h1>
           </div>
 
-          {/* Simulation Stats Badge (inline, never shifts header height) */}
-          {isSimulating && (
-            <div className="hidden lg:flex items-center gap-2.5 text-[11px] font-mono bg-[#0a1726] border border-[#182c3f] px-3 py-1 rounded-xl">
-              <span className="text-red-400 font-semibold">
+          <div className="hidden sm:block h-6 w-px bg-[#182c3f] shrink-0" />
+
+          {/* Trigger Outage Dropdown */}
+          <div className="flex items-center gap-2 shrink-0 whitespace-nowrap text-xs text-[#a9b9c3]">
+            <span className="text-[11px] font-medium text-[#8096a4] uppercase tracking-wider">Trigger:</span>
+            <select
+              value={failedAssetId}
+              onChange={(e) => {
+                setFailedAssetId(e.target.value);
+                handleReset();
+              }}
+              className="bg-[#0a1726] text-[#f2f4f0] font-medium text-xs rounded-lg px-2.5 py-1 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer max-w-[220px] truncate"
+            >
+              {dataset.assets.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.sector})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Simulation Stats Badge: [ X Affected ] [ Y Sectors ] [ Z Steps ] */}
+          {isSimulating ? (
+            <div className="flex items-center gap-2 shrink-0 whitespace-nowrap text-[11px] font-mono">
+              <span className="px-2.5 py-0.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-400 font-semibold">
                 {cascadeResult.affectedNodes.size} Affected
               </span>
-              <span className="text-[#182c3f]">•</span>
-              <span className="text-amber-400 font-semibold">
+              <span className="px-2.5 py-0.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-400 font-semibold">
                 {cascadeResult.sectorsReached.length} Sectors
               </span>
-              <span className="text-[#182c3f]">•</span>
-              <span className="text-[#a8e2dc] font-semibold">
+              <span className="px-2.5 py-0.5 rounded-lg bg-[#0a1726] border border-[#a8e2dc]/30 text-[#a8e2dc] font-semibold">
                 {cascadeResult.totalSteps} Steps
               </span>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-1.5 text-[11px] font-mono text-[#8096a4] shrink-0 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#182c3f]" />
+              <span>Ready to Simulate</span>
             </div>
           )}
         </div>
 
-        {/* Buttons: START CASCADE, NEXT STEP, SHOW COMPLETE, RESET */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right / Button Controls: START CASCADE, NEXT STEP, SHOW COMPLETE, RESET */}
+        <div className="flex items-center gap-2 shrink-0 whitespace-nowrap ml-auto">
           <button
             onClick={handleStartCascade}
-            className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md shadow-red-950/30 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md shadow-red-950/30 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98 shrink-0 whitespace-nowrap"
           >
-            <Zap className="w-3.5 h-3.5 fill-current" />
+            <Zap className="w-3.5 h-3.5 fill-current shrink-0" />
             <span>START CASCADE</span>
           </button>
 
           <button
             onClick={handleNextStep}
-            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
+            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors shrink-0 whitespace-nowrap"
           >
             NEXT STEP
           </button>
 
           <button
             onClick={handleShowComplete}
-            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors hidden sm:block"
+            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors shrink-0 whitespace-nowrap"
           >
             SHOW COMPLETE
           </button>
 
           <button
             onClick={handleReset}
-            className="px-2.5 py-1.5 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1.5 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer flex items-center gap-1.5 transition-colors shrink-0 whitespace-nowrap"
             title="Reset Simulation"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">RESET</span>
+            <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+            <span>RESET</span>
           </button>
         </div>
       </div>
