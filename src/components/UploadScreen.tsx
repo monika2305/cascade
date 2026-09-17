@@ -59,19 +59,24 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-950 text-slate-100 overflow-y-auto">
+    <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-[#061019] text-[#f2f4f0] overflow-y-auto select-none">
       <div className="w-full max-w-xl text-center">
-        {/* Welcome greeting */}
-        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-2">
-          Welcome, {userName}
+        {/* Eyebrow & Welcome greeting */}
+        <div className="flex items-center justify-center gap-2 text-[10px] font-medium tracking-[0.2em] text-[#b9cecf] uppercase mb-2">
+          <span className="w-4 h-px bg-[#addcd7]" />
+          <span>System Onboarding</span>
+          <span className="w-4 h-px bg-[#addcd7]" />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-light text-[#f2f4f0] tracking-tight mb-2">
+          Welcome back, <span className="font-semibold text-white">{userName}</span>
         </h1>
-        <p className="text-slate-400 text-sm mb-8">
-          Upload your city infrastructure file to analyze dependencies and cascades.
+        <p className="text-[#8096a4] text-xs max-w-md mx-auto mb-7 font-normal">
+          Load your municipal or regional infrastructure topology to model interdependencies and simulate systemic cascade risks.
         </p>
 
         {errorMessages.length > 0 && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-950/40 border border-red-500/50 text-red-200 text-xs text-left space-y-1">
-            <div className="font-bold flex items-center gap-1.5 text-red-400">
+          <div className="mb-6 p-3.5 rounded-xl bg-red-950/40 border border-red-500/50 text-red-200 text-xs text-left space-y-1">
+            <div className="font-semibold flex items-center gap-1.5 text-red-400">
               <AlertCircle className="w-4 h-4" /> Parsing Error
             </div>
             {errorMessages.map((msg, i) => (
@@ -81,11 +86,11 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
         )}
 
         {/* Upload Cards */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3.5 mb-7">
           {/* File Upload Trigger */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="p-8 rounded-3xl bg-slate-900/80 border-2 border-dashed border-slate-700 hover:border-cyan-500 hover:bg-slate-900 transition-all cursor-pointer flex flex-col items-center group"
+            className="p-7 rounded-xl bg-[#0a1726]/80 border border-dashed border-[#84979a40] hover:border-[#a8e2dc] hover:bg-[#0d1e30] transition-all cursor-pointer flex flex-col items-center group"
           >
             <input
               ref={fileInputRef}
@@ -98,35 +103,35 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
               }}
             />
 
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-lg bg-[#071321] border border-[#84979a30] text-[#a8e2dc] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <UploadCloud className="w-6 h-6" />
             </div>
 
-            <div className="text-base font-bold text-white mb-1">
-              UPLOAD CSV / JSON
+            <div className="text-xs font-semibold tracking-wider text-[#f2f4f0] uppercase mb-1">
+              UPLOAD CSV / JSON DATASET
             </div>
-            <p className="text-xs text-slate-400">
-              Drop your infrastructure file here or click to browse
+            <p className="text-[11px] text-[#8096a4]">
+              Drop your infrastructure file here or click to browse files
             </p>
           </div>
 
           {/* Sample Data Trigger */}
-          <div className="flex items-center justify-between p-4 bg-slate-900/60 border border-slate-800 rounded-2xl">
+          <div className="flex items-center justify-between p-3.5 bg-[#0a1726]/60 border border-[#182c3f] rounded-xl">
             <div className="flex items-center gap-3 text-left">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+              <div className="w-8 h-8 rounded-lg bg-[#071321] border border-[#84979a25] flex items-center justify-center text-[#a8e2dc]">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-bold text-white">Need sample data?</div>
-                <div className="text-[11px] text-slate-400">
-                  Demo city with 28 services across 6 sectors
+                <div className="text-xs font-semibold text-[#f2f4f0]">Need sample infrastructure?</div>
+                <div className="text-[11px] text-[#8096a4]">
+                  Metropolitan demo city with 28 services across 6 sectors
                 </div>
               </div>
             </div>
 
             <button
               onClick={handleLoadSample}
-              className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="px-3.5 py-2 bg-[#071321] hover:bg-[#0d1e30] text-[#e1ede6] border border-[#84979a55] rounded-md text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer"
             >
               TRY SAMPLE DATA
             </button>
@@ -135,33 +140,33 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
 
         {/* Successful Upload State */}
         {dataset && (
-          <div className="p-6 bg-slate-900 border border-cyan-500/50 rounded-3xl shadow-xl shadow-cyan-950/30 space-y-4 animate-fade-in">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Data Ready: {dataset.name}</span>
+          <div className="p-6 bg-[#0a1726] border border-[#84979a40] rounded-xl shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Dataset Loaded: {dataset.name}</span>
             </div>
 
-            <div className="flex items-center justify-center gap-6 py-2 border-y border-slate-800 text-xs font-mono">
+            <div className="flex items-center justify-center gap-8 py-3 border-y border-[#182c3f] text-xs">
               <div>
-                <strong className="text-white text-base">{dataset.assets.length}</strong>{' '}
-                <span className="text-slate-400">Services</span>
+                <span className="text-white text-base font-semibold">{dataset.assets.length}</span>{' '}
+                <span className="text-[#8096a4] text-[11px] uppercase tracking-wider font-medium">Services</span>
               </div>
               <div>
-                <strong className="text-cyan-400 text-base">{dataset.dependencies.length}</strong>{' '}
-                <span className="text-slate-400">Connections</span>
+                <span className="text-[#a8e2dc] text-base font-semibold">{dataset.dependencies.length}</span>{' '}
+                <span className="text-[#8096a4] text-[11px] uppercase tracking-wider font-medium">Connections</span>
               </div>
               <div>
-                <strong className="text-amber-400 text-base">{(dataset.sectors || []).length}</strong>{' '}
-                <span className="text-slate-400">Sectors</span>
+                <span className="text-amber-400 text-base font-semibold">{(dataset.sectors || []).length}</span>{' '}
+                <span className="text-[#8096a4] text-[11px] uppercase tracking-wider font-medium">Sectors</span>
               </div>
             </div>
 
             <button
               onClick={onViewNetwork}
-              className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98"
+              className="w-full py-3 bg-[#e1ede6] hover:bg-white text-[#112826] font-semibold text-xs uppercase tracking-wider rounded-md shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98"
             >
-              <span>VIEW CITY NETWORK</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>EXPLORE CITY NETWORK</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}

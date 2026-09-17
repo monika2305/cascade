@@ -1,13 +1,13 @@
 import React from 'react';
 import type { UserRole } from '../types/infrastructure';
 import { ROLES } from '../types/roles';
+import { BrandMark } from '../landing/components/Icons';
 import {
   Home,
   Network,
   AlertTriangle,
   Zap,
   Wrench,
-  GitFork,
   LogOut,
   Radio,
   Globe2,
@@ -52,22 +52,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-60 h-full bg-slate-950 border-r border-slate-800/80 flex flex-col shrink-0 select-none z-20">
+    <aside className="w-60 h-full bg-[#061019] border-r border-[#182c3f] flex flex-col shrink-0 select-none z-20">
       {/* Brand */}
-      <div className="h-16 px-5 border-b border-slate-800/80 flex items-center gap-3 shrink-0">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 shadow-md shadow-cyan-500/20">
-          <GitFork className="w-4 h-4 rotate-90" />
+      <div className="h-16 px-5 border-b border-[#182c3f] flex items-center gap-3 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-[#0a1726] border border-[#84979a40] flex items-center justify-center text-[#a8e2dc] shadow-sm">
+          <BrandMark />
         </div>
         <div>
-          <div className="font-black text-sm tracking-wider text-white">CASCADE</div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
-            Infrastructure MVP
+          <div className="font-semibold text-xs tracking-[0.22em] text-[#f2f4f0] uppercase">CASCADE</div>
+          <div className="text-[9px] text-[#8096a4] tracking-widest uppercase font-medium">
+            Intelligence Platform
           </div>
         </div>
       </div>
 
       {/* Nav list */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = activeScreen === item.id;
           const isDisabled = item.requiresData && !hasData;
@@ -77,15 +77,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               disabled={isDisabled}
               onClick={() => onSelectScreen(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium transition-all text-left ${
                 isActive
-                  ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                  ? 'bg-[#0d1e2e] text-[#f2f4f0] border-l-2 border-l-[#a8e2dc] border-y border-r border-[#1a3349] shadow-sm'
                   : isDisabled
-                  ? 'text-slate-600 opacity-50 cursor-not-allowed'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer'
+                  ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                  : 'text-[#8da1af] hover:text-[#f2f4f0] hover:bg-[#0a1726] cursor-pointer'
               }`}
             >
-              <span className={isActive ? 'text-cyan-400' : 'text-slate-500'}>{item.icon}</span>
+              <span className={isActive ? 'text-[#a8e2dc]' : 'text-[#6b8294]'}>{item.icon}</span>
               <span>{item.label}</span>
             </button>
           );
@@ -93,11 +93,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* User profile & Logout */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-900/40 shrink-0 space-y-2">
+      <div className="p-3 border-t border-[#182c3f] bg-[#071321] shrink-0">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <div className="text-xs font-bold text-white truncate">{userName}</div>
-            <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+            <div className="text-xs font-semibold text-[#f2f4f0] truncate">{userName}</div>
+            <div className="text-[10px] text-[#8096a4] flex items-center gap-1 mt-0.5">
               <span>{roleConfig.icon}</span>
               <span className="truncate">{roleConfig.name}</span>
             </div>
@@ -105,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onLogout}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-[#8096a4] hover:text-[#f2f4f0] hover:bg-[#0a1726] rounded-md transition-colors cursor-pointer"
             title="Log Out"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -115,3 +115,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+

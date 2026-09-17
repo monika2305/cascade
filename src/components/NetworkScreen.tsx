@@ -59,20 +59,26 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
   }, [dataset.assets, dataset.dependencies]);
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-hidden relative">
+    <div className="w-full h-full flex-1 flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden relative select-none">
       {/* Header */}
-      <div className="h-14 px-6 border-b border-slate-800/80 bg-slate-950/90 flex items-center justify-between shrink-0 z-10">
+      <div className="h-14 px-6 border-b border-[#182c3f] bg-[#071321]/90 flex items-center justify-between shrink-0 z-10 backdrop-blur-md">
         <div>
-          <h1 className="text-sm font-black text-white uppercase tracking-wider">
-            YOUR CITY NETWORK
-          </h1>
-          <div className="text-xs font-mono text-cyan-400 mt-0.5">
-            {dataset.assets.length} Services • {dataset.dependencies.length} Connections • {(dataset.sectors || []).length} Sectors
+          <div className="flex items-center gap-1.5 text-[9px] font-medium tracking-[0.2em] text-[#b9cecf] uppercase">
+            <span className="w-3 h-px bg-[#addcd7]" />
+            <span>Infrastructure Topology</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wider">
+              City Infrastructure Network
+            </h1>
+            <span className="text-[10px] text-[#8096a4] font-mono">
+              {dataset.assets.length} Services • {dataset.dependencies.length} Connections • {(dataset.sectors || []).length} Sectors
+            </span>
           </div>
         </div>
 
-        <div className="text-xs text-slate-500 hidden sm:block">
-          Click any service to inspect its links
+        <div className="text-[11px] text-[#8096a4] hidden sm:block">
+          Select any infrastructure node to inspect links & dependencies
         </div>
       </div>
 
@@ -84,7 +90,7 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${
+        className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[#061019] bg-[radial-gradient(#182c3f_1px,transparent_1px)] [background-size:24px_24px] ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
@@ -99,23 +105,12 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-            </marker>
-            <marker
-              id="net-arrow-selected"
-              viewBox="0 0 10 10"
-              refX="10"
-              refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#06b6d4" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#1e3850" />
             </marker>
           </defs>
 
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-            {/* Dependencies */}
+            {/* Dependency Connections */}
             {dataset.dependencies.map((dep, idx) => {
               const src = layoutNodes.get(dep.source);
               const tgt = layoutNodes.get(dep.target);
@@ -133,18 +128,15 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
               const c2y = y2;
               const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
-              const isLinked =
-                selectedAsset?.id === dep.source || selectedAsset?.id === dep.target;
-
               return (
                 <path
-                  key={`dep-${idx}`}
+                  key={`${dep.source}-${dep.target}-${idx}`}
                   d={pathD}
                   fill="none"
-                  stroke={isLinked ? '#06b6d4' : '#334155'}
-                  strokeWidth={isLinked ? 2.5 : 1.2}
-                  markerEnd={isLinked ? 'url(#net-arrow-selected)' : 'url(#net-arrow)'}
-                  className="transition-colors duration-200"
+                  stroke="#1a3348"
+                  strokeWidth={1.3}
+                  strokeOpacity={0.65}
+                  markerEnd="url(#net-arrow)"
                 />
               );
             })}
@@ -172,10 +164,10 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
                       y={-3}
                       width={node.width + 6}
                       height={node.height + 6}
-                      rx={12}
+                      rx={10}
                       fill="none"
-                      stroke="#06b6d4"
-                      strokeWidth={2.5}
+                      stroke="#a8e2dc"
+                      strokeWidth={2}
                       className="animate-pulse"
                     />
                   )}
@@ -186,10 +178,10 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
                     y={0}
                     width={node.width}
                     height={node.height}
-                    rx={10}
-                    fill={isSelected ? '#1e293b' : '#0f172a'}
-                    stroke={isSelected ? '#06b6d4' : '#334155'}
-                    strokeWidth={isSelected ? 2 : 1.2}
+                    rx={8}
+                    fill={isSelected ? '#0c2236' : '#0a1726'}
+                    stroke={isSelected ? '#a8e2dc' : '#182c3f'}
+                    strokeWidth={isSelected ? 1.8 : 1}
                     className="transition-colors duration-200"
                   />
 
@@ -244,7 +236,7 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
 
         {/* Small Node Inspector Popup (only when a node is clicked) */}
         {selectedAsset && (
-          <div className="absolute top-6 right-6 z-30 w-72 bg-slate-900/95 border border-slate-700 rounded-2xl shadow-2xl p-4.5 animate-fade-in backdrop-blur-md">
+          <div className="absolute top-6 right-6 z-30 w-72 bg-[#0a1726]/95 border border-[#84979a35] rounded-xl shadow-2xl p-4.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
@@ -252,34 +244,34 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: getSectorConfig(selectedAsset.sector).color }}
                   />
-                  <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
+                  <span className="text-[10px] font-semibold text-[#a8e2dc] uppercase tracking-wider">
                     {selectedAsset.sector}
                   </span>
                 </div>
-                <h4 className="text-sm font-bold text-white leading-tight">
+                <h4 className="text-sm font-semibold text-[#f2f4f0] leading-tight">
                   {selectedAsset.name}
                 </h4>
               </div>
 
               <button
                 onClick={() => setSelectedAsset(null)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="p-1 text-[#8096a4] hover:text-[#f2f4f0] rounded-md hover:bg-[#071321] cursor-pointer"
                 title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-1.5 py-2.5 border-y border-slate-800 text-xs">
-              <div className="flex justify-between text-slate-300">
-                <span className="text-slate-400">Depends on:</span>
-                <span className="font-mono font-bold text-white">
+            <div className="space-y-1.5 py-2.5 border-y border-[#182c3f] text-xs">
+              <div className="flex justify-between text-[#8096a4]">
+                <span>Depends on:</span>
+                <span className="font-mono font-semibold text-[#f2f4f0]">
                   {inDegreeMap.get(selectedAsset.id) || 0} services
                 </span>
               </div>
-              <div className="flex justify-between text-slate-300">
-                <span className="text-slate-400">Supports:</span>
-                <span className="font-mono font-bold text-cyan-300">
+              <div className="flex justify-between text-[#8096a4]">
+                <span>Supports:</span>
+                <span className="font-mono font-semibold text-[#a8e2dc]">
                   {outDegreeMap.get(selectedAsset.id) || 0} services
                 </span>
               </div>
@@ -287,7 +279,7 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
 
             <button
               onClick={() => setSelectedAsset(null)}
-              className="mt-3 w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition-colors"
+              className="mt-3 w-full py-1.5 rounded-md bg-[#071321] hover:bg-[#0d1e30] border border-[#84979a40] text-[#f2f4f0] text-xs font-semibold cursor-pointer transition-colors"
             >
               Close
             </button>

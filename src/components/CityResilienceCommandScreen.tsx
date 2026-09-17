@@ -232,33 +232,33 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
   });
 
   return (
-    <div className="w-full h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
+    <div className="w-full h-full flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden select-none">
       {/* ========================================================================= */}
       {/* 1. TOP BAR: CITY RESILIENCE COMMAND HEADER                                */}
       {/* ========================================================================= */}
-      <header className="h-16 px-6 bg-slate-950/95 border-b border-slate-800 flex items-center justify-between shrink-0 z-30">
+      <header className="h-16 px-6 bg-[#071321]/95 border-b border-[#182c3f] flex items-center justify-between shrink-0 z-30">
         <div className="flex items-center gap-4 min-w-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-red-500/15 border border-red-500/40 flex items-center justify-center text-red-400 shadow-lg shadow-red-500/20">
+            <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
               <Radio className="w-4 h-4 animate-pulse text-red-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black tracking-widest text-white uppercase">
-                  CITY RESILIENCE COMMAND
+                <span className="text-xs font-semibold tracking-wider text-[#f2f4f0] uppercase">
+                  City Resilience Command
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 font-black text-[10px] tracking-wide animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2a0e14] border border-red-500/40 text-red-400 font-medium text-[10px] tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                   ACTIVE CASCADE
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                <span>Current Failure Point:</span>
+              <div className="text-[11px] text-[#a9b9c3] flex items-center gap-2 mt-0.5">
+                <span>Trigger Outage:</span>
                 {/* Failure Asset Dropdown */}
                 <select
                   value={failedAssetId}
                   onChange={(e) => handleFailureChange(e.target.value)}
-                  className="bg-slate-900 border border-slate-700/80 rounded-md px-2 py-0.5 text-white text-[11px] font-bold focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  className="bg-[#0a1726] border border-[#182c3f] rounded-lg px-2 py-0.5 text-[#f2f4f0] text-[11px] font-medium focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer"
                 >
                   {dataset.assets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
@@ -275,26 +275,26 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
         <div className="flex items-center gap-3">
           {/* Role Emphasis Badge */}
           <div
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-medium"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0a1726] border border-[#182c3f] text-[11px] text-[#a9b9c3] font-normal"
             title={roleConfig.focusDescription}
           >
             <span>{roleConfig.icon}</span>
-            <span className="font-bold text-white">{roleConfig.name}:</span>
-            <span className="text-slate-400">{roleEmphasisSummary}</span>
+            <span className="font-semibold text-[#f2f4f0]">{roleConfig.name}:</span>
+            <span className="text-[#a9b9c3]">{roleEmphasisSummary}</span>
           </div>
 
           {/* Real-time Status Badge */}
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-[#0a1726] border border-[#182c3f]">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-rose-400">{affectedCount}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-sm font-semibold text-rose-400">{affectedCount}</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#a9b9c3]">
                 AFFECTED
               </span>
             </div>
-            <span className="text-slate-700">•</span>
+            <span className="text-[#182c3f]">•</span>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-amber-400">{sectorsCount}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-sm font-semibold text-amber-400">{sectorsCount}</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#a9b9c3]">
                 SECTORS
               </span>
             </div>
@@ -309,25 +309,25 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
         {/* ===================================================================== */}
         {/* LEFT / CENTER: CURRENT CASCADE NETWORK VIEW                           */}
         {/* ===================================================================== */}
-        <div className="flex-1 relative h-full bg-slate-950/70 border-r border-slate-800/80 overflow-hidden">
+        <div className="flex-1 relative h-full bg-[#061019] border-r border-[#182c3f] overflow-hidden">
           {/* Canvas Sub-Header */}
           <div className="absolute top-4 left-5 z-20 flex items-center gap-2">
-            <div className="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 backdrop-blur-md flex items-center gap-2.5 shadow-lg">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold">
+            <div className="px-3 py-1.5 rounded-xl bg-[#0a1726]/90 border border-[#182c3f] backdrop-blur-md flex items-center gap-2.5 shadow-lg">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
-                <span className="text-slate-300">Root Failure</span>
+                <span className="text-[#f2f4f0]">Root Failure</span>
               </div>
-              <span className="text-slate-700">•</span>
-              <div className="flex items-center gap-1.5 text-[11px] font-bold">
+              <span className="text-[#182c3f]">•</span>
+              <div className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-                <span className="text-slate-300">
+                <span className="text-[#f2f4f0]">
                   {showWhatChanged ? 'Still Affected' : 'Cascade Affected'}
                 </span>
               </div>
               {showWhatChanged && (
                 <>
-                  <span className="text-slate-700">•</span>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold">
+                  <span className="text-[#182c3f]">•</span>
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
                     <span className="text-emerald-300">Protected by Fix</span>
                   </div>
@@ -473,38 +473,38 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                   const SectorIcon = sectorCfg.icon;
 
                   // Dynamic Card Styles
-                  let cardBg = 'bg-slate-900/90 border-slate-800 text-slate-300';
+                  let cardBg = 'bg-[#0a1726]/95 border-[#182c3f] text-[#f2f4f0]';
                   let statusBadge = (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-400">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-[#071321] text-[#a9b9c3] border border-[#182c3f]">
                       OPERATIONAL
                     </span>
                   );
 
                   if (isRootFailed) {
-                    cardBg = 'bg-rose-950/80 border-rose-500 text-white shadow-xl shadow-rose-950/50';
+                    cardBg = 'bg-[#2a0e14] border-rose-500 text-white shadow-xl shadow-rose-950/40';
                     statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500/30 text-rose-300 border border-rose-500/50">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">
                         FAILED
                       </span>
                     );
                   } else if (isProtected) {
-                    cardBg = 'bg-emerald-950/80 border-emerald-500 text-white shadow-xl shadow-emerald-950/40 ring-1 ring-emerald-400/40';
+                    cardBg = 'bg-[#07261e] border-emerald-500 text-white shadow-xl shadow-emerald-950/40 ring-1 ring-emerald-400/40';
                     statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 animate-pulse">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
                         ✓ PROTECTED
                       </span>
                     );
                   } else if (showWhatChanged && isStillAffected) {
-                    cardBg = 'bg-amber-950/80 border-amber-500 text-white shadow-lg shadow-amber-950/40';
+                    cardBg = 'bg-[#261405] border-amber-500 text-white shadow-lg shadow-amber-950/30';
                     statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/30 text-amber-300 border border-amber-500/50">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                         STILL AFFECTED
                       </span>
                     );
                   } else if (isCascadeAffected) {
-                    cardBg = 'bg-amber-950/80 border-amber-500 text-white shadow-lg shadow-amber-950/40';
+                    cardBg = 'bg-[#261405] border-amber-500 text-white shadow-lg shadow-amber-950/30';
                     statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/30 text-amber-300 border border-amber-500/50">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                         AFFECTED
                       </span>
                     );
@@ -524,16 +524,16 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                       >
                         <div className="flex items-center justify-between gap-1">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <SectorIcon className="w-3.5 h-3.5 shrink-0 text-slate-300" />
-                            <span className="text-xs font-bold truncate leading-tight">
+                            <SectorIcon className="w-3.5 h-3.5 shrink-0 text-[#a9b9c3]" />
+                            <span className="text-xs font-semibold truncate leading-tight">
                               {asset.name}
                             </span>
                           </div>
                           {statusBadge}
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                          <span className="font-semibold">{asset.sector}</span>
-                          <span className="text-slate-500 font-mono text-[9px]">{asset.id}</span>
+                        <div className="flex items-center justify-between text-[10px] text-[#a9b9c3]">
+                          <span className="font-medium">{asset.sector}</span>
+                          <span className="text-[#a9b9c3]/70 font-mono text-[9px]">{asset.id}</span>
                         </div>
                       </div>
                     </foreignObject>
@@ -556,52 +556,52 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
         {/* ===================================================================== */}
         {/* RIGHT COLUMN: EMERGENCY DECISION PIPELINE (THE CORE HERO)             */}
         {/* ===================================================================== */}
-        <div className="w-full md:w-[420px] lg:w-[460px] h-full bg-slate-900/90 border-l border-slate-800 flex flex-col shrink-0 overflow-y-auto z-20 p-5 space-y-4">
+        <div className="w-full md:w-[420px] lg:w-[460px] h-full bg-[#071321]/95 border-l border-[#182c3f] flex flex-col shrink-0 overflow-y-auto z-20 p-5 space-y-4">
           {/* =================================================================== */}
           {/* 1. WHAT FAILED & WHAT IS AFFECTED?                                  */}
           {/* =================================================================== */}
-          <section className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 shadow-sm">
+          <section className="bg-[#0a1726] border border-[#182c3f] rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <div className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#a9b9c3] flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
-                1. CURRENT SITUATION
+                1. Current Situation
               </div>
-              <span className="text-[10px] font-mono text-slate-500">{failedAssetId}</span>
+              <span className="text-[10px] font-mono text-[#a9b9c3]/70">{failedAssetId}</span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div>
-                <h3 className="text-base font-black text-white leading-tight">
+                <h3 className="text-sm font-semibold text-[#f2f4f0] leading-tight">
                   {currentAsset?.name || failedAssetId}
                 </h3>
-                <div className="text-xs text-rose-400 font-bold mt-0.5">
+                <div className="text-xs text-rose-400 font-medium mt-0.5">
                   Critical failure in {currentAsset?.sector || 'Infrastructure'}
                 </div>
               </div>
 
               {/* Real deterministic counts */}
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Total Affected</div>
-                  <div className="text-xl font-black text-amber-400 mt-0.5">
+                <div className="p-3 rounded-xl bg-[#071321] border border-[#182c3f]">
+                  <div className="text-[10px] uppercase font-mono text-[#a9b9c3]">Total Affected</div>
+                  <div className="text-xl font-semibold text-amber-400 mt-0.5">
                     {affectedCount}{' '}
-                    <span className="text-xs font-normal text-slate-400">services</span>
+                    <span className="text-xs font-normal text-[#a9b9c3]">services</span>
                   </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Sectors Down</div>
-                  <div className="text-xl font-black text-amber-400 mt-0.5">
+                <div className="p-3 rounded-xl bg-[#071321] border border-[#182c3f]">
+                  <div className="text-[10px] uppercase font-mono text-[#a9b9c3]">Sectors Down</div>
+                  <div className="text-xl font-semibold text-amber-400 mt-0.5">
                     {sectorsCount}{' '}
-                    <span className="text-xs font-normal text-slate-400">sectors</span>
+                    <span className="text-xs font-normal text-[#a9b9c3]">sectors</span>
                   </div>
                 </div>
               </div>
 
               {/* Role Emphasis Callout */}
-              <div className="p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-[11px] text-cyan-200 flex items-start gap-2">
-                <Info className="w-3.5 h-3.5 shrink-0 text-cyan-400 mt-0.5" />
+              <div className="p-2.5 rounded-xl bg-[#071321] border border-[#182c3f] text-[11px] text-[#a9b9c3] flex items-start gap-2">
+                <Info className="w-3.5 h-3.5 shrink-0 text-[#a8e2dc] mt-0.5" />
                 <div>
-                  <span className="font-bold">{roleConfig.name} Focus: </span>
+                  <span className="font-semibold text-[#f2f4f0]">{roleConfig.name} Focus: </span>
                   {roleEmphasisSummary}
                 </div>
               </div>
@@ -611,15 +611,15 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
           {/* =================================================================== */}
           {/* 2. WHAT SHOULD I DO NOW? (NEXT ACTION)                              */}
           {/* =================================================================== */}
-          <section className="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 shadow-sm flex-1 flex flex-col justify-between">
+          <section className="bg-[#0a1726] border border-[#182c3f] rounded-2xl p-4 shadow-sm flex-1 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] font-black uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                  2. NEXT RECOMMENDED ACTION
+                <div className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#a8e2dc] flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-[#a8e2dc]" />
+                  2. Recommended Action
                 </div>
                 {recommendedFix && expectedProtectedCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold">
                     RECOMMENDED
                   </span>
                 )}
@@ -627,14 +627,14 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
 
               {recommendedFix ? (
                 <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                  <div className="p-3.5 rounded-xl bg-[#071321] border border-[#182c3f]">
                     <div className="flex items-start gap-2.5">
                       <span className="text-xl">{recommendedFix.icon}</span>
                       <div className="min-w-0">
-                        <div className="text-sm font-black text-white leading-tight">
+                        <div className="text-sm font-semibold text-[#f2f4f0] leading-tight">
                           {recommendedFix.title}
                         </div>
-                        <div className="text-xs text-slate-400 mt-1 leading-normal">
+                        <div className="text-xs text-[#a9b9c3] mt-1 leading-normal">
                           {recommendedFix.description}
                         </div>
                       </div>
@@ -642,37 +642,37 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                   </div>
 
                   {/* Expected Result Breakdown */}
-                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800/80">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <div className="p-3 rounded-xl bg-[#071321] border border-[#182c3f]">
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-[#a9b9c3] mb-2">
                       Expected Result If Tested:
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-black text-slate-400">{affectedCount}</div>
-                        <div className="text-[10px] text-slate-500 uppercase font-bold">Affected</div>
+                        <div className="text-lg font-semibold text-[#a9b9c3]">{affectedCount}</div>
+                        <div className="text-[10px] text-[#a9b9c3]/70 uppercase font-mono">Affected</div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-cyan-400" />
+                      <ArrowRight className="w-4 h-4 text-[#a8e2dc]" />
                       <div className="text-center">
-                        <div className="text-lg font-black text-amber-400">
+                        <div className="text-lg font-semibold text-amber-400">
                           {expectedAfterAffectedCount}
                         </div>
-                        <div className="text-[10px] text-slate-500 uppercase font-bold">After</div>
+                        <div className="text-[10px] text-[#a9b9c3]/70 uppercase font-mono">After</div>
                       </div>
-                      <div className="h-8 w-px bg-slate-800" />
+                      <div className="h-8 w-px bg-[#182c3f]" />
                       <div className="text-right">
                         {expectedProtectedCount > 0 ? (
                           <>
-                            <div className="text-lg font-black text-emerald-400">
+                            <div className="text-lg font-semibold text-emerald-400">
                               +{expectedProtectedCount}
                             </div>
-                            <div className="text-[10px] text-emerald-400 uppercase font-bold">
+                            <div className="text-[10px] text-emerald-400 uppercase font-mono">
                               Protected
                             </div>
                           </>
                         ) : (
                           <>
-                            <div className="text-xs font-bold text-slate-500">No change</div>
-                            <div className="text-[10px] text-slate-500 uppercase font-bold">Impact</div>
+                            <div className="text-xs font-medium text-[#a9b9c3]">No change</div>
+                            <div className="text-[10px] text-[#a9b9c3]/70 uppercase font-mono">Impact</div>
                           </>
                         )}
                       </div>
@@ -680,44 +680,44 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                   </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
+                <div className="p-4 rounded-xl bg-[#071321] border border-[#182c3f] text-center text-xs text-[#a9b9c3]">
                   No available action reduces the current impact.
                 </div>
               )}
             </div>
 
             {/* Test Action Trigger & Tested In-Place Result */}
-            <div className="pt-4 mt-3 border-t border-slate-800/80">
+            <div className="pt-4 mt-3 border-t border-[#182c3f]">
               {!isActionTested ? (
                 <button
                   onClick={handleTestAction}
                   disabled={!recommendedFix}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl bg-[#e1ede6] hover:bg-white text-[#112826] font-medium text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <Zap className="w-4 h-4 fill-slate-950" />
+                  <Zap className="w-3.5 h-3.5 fill-[#112826]" />
                   <span>TEST ACTION</span>
                 </button>
               ) : (
                 <div className="space-y-3">
                   {/* Action Tested Hero Pill */}
-                  <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40">
+                  <div className="p-3 rounded-xl bg-[#07261e] border border-emerald-500/40">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span className="text-xs font-black text-emerald-300 uppercase tracking-wide">
+                        <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">
                           ACTION TESTED ✓
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-emerald-400 font-mono">
+                      <span className="text-xs font-semibold text-emerald-400 font-mono">
                         {testResult?.savedAssetsCount || 0} PROTECTED
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs mt-2 text-slate-300">
+                    <div className="flex items-center justify-between text-xs mt-2 text-[#a9b9c3]">
                       <span>
-                        Before: <strong className="text-white">{affectedCount}</strong>
+                        Before: <strong className="text-[#f2f4f0]">{affectedCount}</strong>
                       </span>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ArrowRight className="w-3.5 h-3.5 text-[#182c3f]" />
                       <span>
                         After:{' '}
                         <strong className="text-emerald-400">
@@ -731,17 +731,17 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setShowWhatChanged((prev) => !prev)}
-                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                         showWhatChanged
-                          ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300'
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                          ? 'bg-[#a8e2dc]/10 border-[#a8e2dc] text-[#a8e2dc]'
+                          : 'bg-[#071321] border-[#182c3f] text-[#a9b9c3] hover:text-[#f2f4f0] hover:border-[#84979a40]'
                       }`}
                     >
                       {showWhatChanged ? '✓ Highlighting Changes' : 'View What Changed'}
                     </button>
                     <button
                       onClick={handleResetAction}
-                      className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      className="p-2 rounded-lg bg-[#071321] border border-[#182c3f] hover:border-[#84979a40] text-[#a9b9c3] hover:text-[#f2f4f0] transition-colors cursor-pointer"
                       title="Reset Tested Action"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -752,7 +752,7 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                   {onNavigateToActionLab && (
                     <button
                       onClick={() => onNavigateToActionLab(failedAssetId)}
-                      className="w-full py-2 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-cyan-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="w-full py-2 px-3 rounded-lg bg-[#071321] hover:bg-[#0d1e2e] border border-[#182c3f] hover:border-[#84979a40] text-[#a8e2dc] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <span>Simulate in Action Lab</span>
                       <ExternalLink className="w-3 h-3" />
@@ -766,13 +766,13 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
           {/* =================================================================== */}
           {/* 3. RECOVERY PRIORITY (FROM RECOVERY PLANNER)                        */}
           {/* =================================================================== */}
-          <section className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 shadow-sm">
+          <section className="bg-[#0a1726] border border-[#182c3f] rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <div className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#a9b9c3] flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                3. RECOVERY PRIORITY
+                3. Recovery Priority
               </div>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-[#a9b9c3]/70">
                 Step 1 of {recoveryPlan.steps.length}
               </span>
             </div>
@@ -780,14 +780,14 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
             {topRecoveryStep ? (
               <div className="space-y-2.5">
                 <div>
-                  <div className="text-xs font-black text-white">
+                  <div className="text-xs font-semibold text-[#f2f4f0]">
                     Restore {topRecoveryStep.assetName} first
                   </div>
-                  <div className="text-[11px] text-emerald-400 font-bold mt-0.5">
+                  <div className="text-[11px] text-emerald-400 font-medium mt-0.5">
                     Could recover {topRecoveryStep.servicesRecovered}{' '}
                     {topRecoveryStep.servicesRecovered === 1 ? 'service' : 'services'}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-1 leading-normal">
+                  <div className="text-[11px] text-[#a9b9c3] mt-1 leading-normal">
                     {topRecoveryStep.explanation}
                   </div>
                 </div>
@@ -795,15 +795,15 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                 {onNavigateToRecoveryPlan && (
                   <button
                     onClick={() => onNavigateToRecoveryPlan(failedAssetId)}
-                    className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-200 hover:text-white flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full py-2 px-3 rounded-xl bg-[#071321] hover:bg-[#0d1e2e] border border-[#182c3f] hover:border-[#84979a40] text-xs font-medium text-[#f2f4f0] flex items-center justify-between transition-colors cursor-pointer"
                   >
                     <span>View Recovery Plan</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#a8e2dc]" />
                   </button>
                 )}
               </div>
             ) : (
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
+              <div className="p-3 rounded-xl bg-[#071321] border border-[#182c3f] text-center text-xs text-[#a9b9c3]">
                 No restoration currently improves service recovery.
               </div>
             )}

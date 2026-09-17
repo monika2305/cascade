@@ -139,20 +139,29 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-hidden relative">
+    <div className="w-full h-full flex-1 flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden relative">
       {/* Top Header & Controls */}
-      <div className="px-6 py-3.5 border-b border-slate-800/80 bg-slate-950/90 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+      <div className="px-6 py-4 border-b border-[#182c3f] bg-[#071321]/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
         <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Simulation Lab</span>
+            <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <span className="text-slate-400 font-medium">Selected:</span>
+            <h2 className="text-sm font-medium tracking-tight text-[#f2f4f0]">
+              Failure Cascade Analysis
+            </h2>
+
+            <div className="flex items-center gap-2 bg-[#0a1726] border border-[#182c3f] rounded-xl px-3 py-1 text-xs">
+              <span className="text-[#a9b9c3] font-medium">Trigger Asset:</span>
               <select
                 value={failedAssetId}
                 onChange={(e) => {
                   setFailedAssetId(e.target.value);
                   handleReset();
                 }}
-                className="bg-slate-950 text-white font-bold rounded px-2 py-0.5 border border-slate-700 focus:outline-none focus:border-cyan-500 cursor-pointer"
+                className="bg-[#071321] text-[#f2f4f0] font-semibold rounded-lg px-2 py-0.5 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer"
               >
                 {dataset.assets.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -163,24 +172,24 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
             </div>
 
             {isSimulating && (
-              <div className="flex items-center gap-3 text-xs font-mono bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-xl">
-                <span className="text-red-400 font-bold">
+              <div className="flex items-center gap-3 text-xs font-mono bg-[#0a1726]/80 border border-[#182c3f] px-3 py-1 rounded-xl">
+                <span className="text-red-400 font-semibold">
                   {cascadeResult.affectedNodes.size} Services Affected
                 </span>
-                <span className="text-slate-600">•</span>
-                <span className="text-amber-400 font-bold">
+                <span className="text-[#182c3f]">•</span>
+                <span className="text-amber-400 font-semibold">
                   {cascadeResult.sectorsReached.length} Sectors Reached
                 </span>
-                <span className="text-slate-600">•</span>
-                <span className="text-cyan-400 font-bold">
+                <span className="text-[#182c3f]">•</span>
+                <span className="text-[#a8e2dc] font-semibold">
                   {cascadeResult.totalSteps} Steps
                 </span>
               </div>
             )}
           </div>
 
-          <div className="text-xs text-slate-400 font-medium">
-            Watch the failure spread through connected city services.
+          <div className="text-xs text-[#a9b9c3] font-normal">
+            Select an infrastructure node to trigger an outage and observe deterministic cross-sector propagation.
           </div>
         </div>
 
@@ -188,7 +197,7 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleStartCascade}
-            className="px-3.5 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-950/40 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+            className="px-3.5 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-lg shadow-red-950/30 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
             <span>START CASCADE</span>
@@ -196,22 +205,21 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
           <button
             onClick={handleNextStep}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+            className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
           >
             NEXT STEP
           </button>
 
           <button
             onClick={handleShowComplete}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+            className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
           >
-            SHOW COMPLETE CASCADE
+            SHOW COMPLETE
           </button>
-
 
           <button
             onClick={handleReset}
-            className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-bold text-xs rounded-xl border border-slate-800 cursor-pointer flex items-center gap-1 transition-colors"
+            className="px-3 py-2 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer flex items-center gap-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>RESET</span>
@@ -227,7 +235,7 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${
+        className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[#061019] bg-[radial-gradient(#182c3f_1px,transparent_1px)] [background-size:24px_24px] ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
@@ -242,7 +250,7 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#182c3f" />
             </marker>
             <marker
               id="fail-arrow-active"
@@ -309,8 +317,8 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
                         ? '#ef4444'
                         : '#f97316'
                       : isSimulating
-                      ? '#1e293b'
-                      : '#334155'
+                      ? '#142232'
+                      : '#182c3f'
                   }
                   strokeWidth={isActive ? 2.5 : 1.2}
                   strokeDasharray={isActive ? '4 2' : undefined}
@@ -333,27 +341,28 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
               const info = cascadeResult.affectedNodes.get(asset.id);
               const sectorCfg = getSectorConfig(asset.sector);
 
-              let bgColor = '#090d16';
-              let borderColor = '#334155';
-              let textColor = '#e2e8f0';
+              let bgColor = '#0a1726';
+              let borderColor = '#182c3f';
+              let textColor = '#f2f4f0';
               let badgeText = '';
               let badgeBg = '';
 
               if (visualState === 'failed') {
-                bgColor = '#450a0a';
+                bgColor = '#2a0e14';
                 borderColor = '#ef4444';
                 textColor = '#ffffff';
                 badgeText = 'FAILED';
-                badgeBg = 'bg-red-500 text-white';
+                badgeBg = 'bg-red-600 text-white';
               } else if (visualState === 'affected') {
-                bgColor = '#431407';
+                bgColor = '#261405';
                 borderColor = '#f97316';
                 textColor = '#ffffff';
                 badgeText = `STEP ${info?.step}`;
-                badgeBg = 'bg-amber-500 text-slate-950 font-black';
+                badgeBg = 'bg-amber-500 text-slate-950 font-bold';
               } else if (visualState === 'dimmed') {
-                textColor = '#475569';
-                borderColor = '#1e293b';
+                textColor = '#475e75';
+                borderColor = '#121f2d';
+                bgColor = '#07121c';
               }
 
               return (
@@ -462,32 +471,33 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
         {/* Modal: WHY WAS THIS AFFECTED? (when orange node is clicked) */}
         {whyNodeId && whyAsset && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-amber-950/50 animate-fade-in relative text-center">
+          <div className="fixed inset-0 z-50 bg-[#061019]/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-[#0a1726] border border-[#182c3f] rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/80 animate-fade-in relative text-center">
               <button
                 onClick={() => setWhyNodeId(null)}
-                className="absolute right-4 top-4 text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 cursor-pointer"
+                className="absolute right-4 top-4 text-[#a9b9c3] hover:text-[#f2f4f0] p-1.5 rounded-xl hover:bg-[#071321] cursor-pointer transition-colors"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="text-xs font-black text-amber-400 tracking-widest uppercase mb-1">
-                WHY WAS THIS AFFECTED?
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-[10px] font-mono tracking-[0.2em] text-[#fbbf24] uppercase">Causation Trace</span>
+                <span className="w-3 h-px bg-[#fbbf24]/40"></span>
               </div>
-              <h3 className="text-lg font-black text-white mb-2">
+              <h3 className="text-base font-semibold text-[#f2f4f0] mb-3">
                 {whyAsset.name}
               </h3>
 
               {/* Plain English explanation sentence */}
               {whyPath.length >= 2 ? (
-                <div className="text-xs text-slate-200 mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center leading-relaxed">
-                  <span className="text-white font-bold">{whyPath[whyPath.length - 1].assetName}</span> was affected because it depends on{' '}
-                  <span className="text-amber-400 font-bold">{whyPath[whyPath.length - 2].assetName}</span>.
+                <div className="text-xs text-[#a9b9c3] mb-6 bg-[#071321] p-3.5 rounded-xl border border-[#182c3f] text-center leading-relaxed">
+                  <span className="text-[#f2f4f0] font-medium">{whyPath[whyPath.length - 1].assetName}</span> was affected because it depends on{' '}
+                  <span className="text-[#fbbf24] font-medium">{whyPath[whyPath.length - 2].assetName}</span>.
                 </div>
               ) : (
-                <div className="text-xs text-slate-200 mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
-                  <span className="text-white font-bold">{whyAsset.name}</span> is the initial failure point.
+                <div className="text-xs text-[#a9b9c3] mb-6 bg-[#071321] p-3.5 rounded-xl border border-[#182c3f] text-center">
+                  <span className="text-[#f2f4f0] font-medium">{whyAsset.name}</span> is the initial failure point.
                 </div>
               )}
 
@@ -496,22 +506,22 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
                 {whyPath.map((step, idx) => (
                   <React.Fragment key={step.assetId}>
                     <div
-                      className={`p-3 rounded-xl border text-sm font-bold ${
+                      className={`p-3 rounded-xl border text-sm font-medium ${
                         step.isInitialFailure
-                          ? 'bg-red-500/20 border-red-500/50 text-red-300'
+                          ? 'bg-[#2a0e14] border-red-500/40 text-red-300'
                           : idx === whyPath.length - 1
-                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                          : 'bg-slate-800/80 border-slate-700 text-slate-200'
+                          ? 'bg-[#261405] border-amber-500/40 text-amber-300'
+                          : 'bg-[#071321] border-[#182c3f] text-[#f2f4f0]'
                       }`}
                     >
                       <div>{step.assetName}</div>
-                      <div className="text-[10px] text-slate-400 font-normal uppercase mt-0.5">
+                      <div className="text-[10px] text-[#a9b9c3] font-mono uppercase mt-0.5">
                         {step.sector}
                       </div>
                     </div>
 
                     {idx < whyPath.length - 1 && (
-                      <div className="text-slate-500 font-black text-center text-sm my-1">
+                      <div className="text-[#a8e2dc]/60 font-mono text-center text-xs my-1">
                         ↓
                       </div>
                     )}
@@ -521,9 +531,9 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
               <button
                 onClick={() => setWhyNodeId(null)}
-                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-wider cursor-pointer transition-colors"
+                className="w-full py-2.5 rounded-xl bg-[#071321] hover:bg-[#0d1e2e] text-[#f2f4f0] text-xs font-medium uppercase tracking-wider border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
               >
-                CLOSE
+                Close Trace
               </button>
             </div>
           </div>

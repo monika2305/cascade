@@ -20,40 +20,40 @@ export const GraphControls: React.FC<GraphControlsProps> = ({
 }) => {
   return (
     <div
-      className={`flex items-center gap-1.5 bg-slate-900/95 border border-slate-700/80 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl z-20 ${className}`}
+      className={`flex items-center gap-1 bg-[#0a1726]/95 border border-[#84979a40] rounded-xl p-1 backdrop-blur-md shadow-2xl z-20 select-none ${className}`}
     >
       <button
         onClick={onZoomIn}
-        className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+        className="px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium text-[#c0d0dc] hover:text-white hover:bg-[#071321] transition-colors cursor-pointer"
         title="Zoom In (+)"
       >
-        <ZoomIn className="w-3.5 h-3.5 text-cyan-400" />
+        <ZoomIn className="w-3.5 h-3.5 text-[#a8e2dc]" />
         <span>Zoom In</span>
       </button>
 
       <button
         onClick={onZoomOut}
-        className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+        className="px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium text-[#c0d0dc] hover:text-white hover:bg-[#071321] transition-colors cursor-pointer"
         title="Zoom Out (−)"
       >
-        <ZoomOut className="w-3.5 h-3.5 text-cyan-400" />
+        <ZoomOut className="w-3.5 h-3.5 text-[#a8e2dc]" />
         <span>Zoom Out</span>
       </button>
 
-      <div className="w-[1px] h-4 bg-slate-800 my-auto" />
+      <div className="w-[1px] h-3.5 bg-[#182c3f] my-auto" />
 
       <button
         onClick={onFit}
-        className="px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+        className="px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium text-[#c0d0dc] hover:text-white hover:bg-[#071321] transition-colors cursor-pointer"
         title={fitLabel}
       >
-        <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+        <Maximize2 className="w-3.5 h-3.5 text-[#a8e2dc]" />
         <span>{fitLabel}</span>
       </button>
 
       {extraActions && (
         <>
-          <div className="w-[1px] h-4 bg-slate-800 my-auto" />
+          <div className="w-[1px] h-3.5 bg-[#182c3f] my-auto" />
           {extraActions}
         </>
       )}

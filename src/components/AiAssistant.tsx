@@ -351,33 +351,33 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
       {/* Slide-in Analysis Copilot Panel */}
       {isOpen && (
-        <div className="absolute left-6 bottom-22 z-50 w-[360px] sm:w-[410px] h-[560px] max-h-[calc(100vh-7rem)] bg-slate-900/98 border border-cyan-500/40 rounded-3xl shadow-2xl shadow-cyan-950/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-left-6 duration-200 backdrop-blur-xl select-none">
+        <div className="absolute left-6 bottom-22 z-50 w-[360px] sm:w-[410px] h-[560px] max-h-[calc(100vh-7rem)] bg-[#0a1726]/98 border border-[#182c3f] rounded-3xl shadow-2xl shadow-black/80 flex flex-col overflow-hidden animate-in fade-in slide-in-from-left-6 duration-200 backdrop-blur-xl select-none">
           {/* Header */}
-          <div className="px-4 py-3 bg-slate-950/95 border-b border-slate-800 flex items-center justify-between">
+          <div className="px-4 py-3 bg-[#071321]/95 border-b border-[#182c3f] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               {/* Robot Mini Avatar */}
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 flex items-center justify-center shadow-md shadow-cyan-500/20">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+              <div className="w-8 h-8 rounded-xl bg-[#0a2328] border border-[#a8e2dc]/40 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-[#a8e2dc]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-white uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wider">
                     CASCADE AI
                   </span>
-                  <span className="flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-[9px] font-bold text-cyan-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#07261e] border border-emerald-500/40 text-[9px] font-medium text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     ONLINE
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-400 font-medium">
-                  Infrastructure Analysis Copilot
+                <div className="text-[10px] text-[#a9b9c3] font-normal">
+                  Infrastructure Copilot
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 text-[#a9b9c3] hover:text-[#f2f4f0] rounded-xl hover:bg-[#071321] transition-colors cursor-pointer"
               title="Close Copilot (Esc)"
             >
               <X className="w-4 h-4" />
@@ -385,12 +385,12 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
           </div>
 
           {/* Context Banner */}
-          <div className="px-4 py-2 bg-cyan-950/30 border-b border-cyan-500/20 flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase tracking-widest">
+          <div className="px-4 py-2 bg-[#071321]/80 border-b border-[#182c3f] flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#0a2328] text-[#a8e2dc] border border-[#a8e2dc]/30 uppercase tracking-wider">
                 {contextBadge.label}
               </span>
-              <span className="text-slate-300 font-medium truncate max-w-[200px]">
+              <span className="text-[#a9b9c3] font-normal truncate max-w-[200px]">
                 {contextBadge.desc}
               </span>
             </div>
@@ -410,18 +410,18 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   <div
                     className={`max-w-[90%] px-3.5 py-2.5 rounded-2xl leading-relaxed ${
                       m.sender === 'user'
-                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-xs shadow-md'
-                        : 'bg-slate-800/90 text-slate-200 border border-slate-700/60 rounded-bl-xs shadow-lg'
+                        ? 'bg-[#e1ede6] text-[#112826] font-medium rounded-br-xs shadow-sm'
+                        : 'bg-[#071321] text-[#f2f4f0] border border-[#182c3f] rounded-bl-xs shadow-md'
                     }`}
                   >
-                    <div className="whitespace-pre-line font-medium text-[12px]">{m.text}</div>
+                    <div className="whitespace-pre-line font-normal text-[12px]">{m.text}</div>
 
                     {/* Visual Causal Dependency Path */}
                     {m.visualPath && m.visualPath.length > 0 && (
-                      <div className="my-2.5 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
-                        <div className="text-[10px] font-black text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
-                          <span>CAUSAL DEPENDENCY PATH</span>
+                      <div className="my-2.5 p-2.5 rounded-xl bg-[#0a1726] border border-[#182c3f]">
+                        <div className="text-[10px] font-mono text-[#a8e2dc] uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 text-[#a8e2dc]" />
+                          <span>Causal Dependency Trace</span>
                         </div>
                         <div className="space-y-1.5">
                           {m.visualPath.map((step, idx) => {
@@ -430,24 +430,24 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                             return (
                               <React.Fragment key={step.assetId}>
                                 <div
-                                  className={`flex items-center justify-between p-2 rounded-lg border text-[11px] font-bold ${
+                                  className={`flex items-center justify-between p-2 rounded-lg border text-[11px] font-medium ${
                                     step.isInitialFailure
-                                      ? 'bg-red-500/20 border-red-500/40 text-red-300'
+                                      ? 'bg-[#2a0e14] border-red-500/40 text-red-300'
                                       : idx === m.visualPath!.length - 1
-                                      ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                                      : 'bg-slate-900 border-slate-800 text-slate-200'
+                                      ? 'bg-[#261405] border-amber-500/40 text-amber-300'
+                                      : 'bg-[#071321] border-[#182c3f] text-[#f2f4f0]'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <IconComp className="w-3.5 h-3.5" />
+                                    <IconComp className="w-3.5 h-3.5 text-[#a9b9c3]" />
                                     <span>{step.assetName}</span>
                                   </div>
-                                  <span className="text-[9px] uppercase font-semibold text-slate-400">
+                                  <span className="text-[9px] font-mono uppercase text-[#a9b9c3]">
                                     {step.sector}
                                   </span>
                                 </div>
                                 {idx < m.visualPath!.length - 1 && (
-                                  <div className="text-slate-500 font-bold text-center text-xs my-0.5">
+                                  <div className="text-[#a8e2dc]/50 font-mono text-center text-xs my-0.5">
                                     ↓
                                   </div>
                                 )}
@@ -460,7 +460,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
                     {/* Action Deep Link */}
                     {m.actionLink && onNavigateToScreen && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-700/60 flex items-center justify-end">
+                      <div className="mt-2.5 pt-2 border-t border-[#182c3f] flex items-center justify-end">
                         <button
                           onClick={() => {
                             if (m.actionLink?.assetId && onSelectAsset) {
@@ -469,12 +469,12 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                             onNavigateToScreen(m.actionLink!.screen, m.actionLink?.assetId);
                             setIsOpen(false);
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-[#0a2328] hover:bg-[#0e3037] border border-[#a8e2dc]/40 text-[#a8e2dc] font-medium text-[10px] uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {m.actionLink.screen === 'city-twin' ? (
-                            <Globe2 className="w-3 h-3 text-cyan-400" />
+                            <Globe2 className="w-3 h-3 text-[#a8e2dc]" />
                           ) : (
-                            <Network className="w-3 h-3 text-cyan-400" />
+                            <Network className="w-3 h-3 text-[#a8e2dc]" />
                           )}
                           <span>{m.actionLink.label}</span>
                           <ArrowRight className="w-3 h-3" />
@@ -484,10 +484,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
                     {/* Calculation Details Toggle */}
                     {hasCalc && (
-                      <div className="mt-2 pt-2 border-t border-slate-700/60">
+                      <div className="mt-2 pt-2 border-t border-[#182c3f]">
                         <button
                           onClick={() => toggleCalculation(m.id)}
-                          className="flex items-center gap-1 text-[10px] font-bold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-[10px] font-medium text-[#a8e2dc] hover:text-white transition-colors cursor-pointer"
                         >
                           <span>{isExpanded ? 'Hide calculation' : 'Show calculation details'}</span>
                           {isExpanded ? (
@@ -498,7 +498,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                         </button>
 
                         {isExpanded && (
-                          <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-slate-800 text-[10px] text-slate-300 font-mono whitespace-pre-line leading-relaxed">
+                          <div className="mt-2 p-2.5 rounded-lg bg-[#061019] border border-[#182c3f] text-[10px] text-[#a9b9c3] font-mono whitespace-pre-line leading-relaxed">
                             {m.calculationDetails}
                           </div>
                         )}
@@ -512,12 +512,12 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
           </div>
 
           {/* Contextual Quick Questions */}
-          <div className="px-3 py-2 bg-slate-950/50 border-t border-slate-800 flex flex-wrap gap-1.5">
+          <div className="px-3 py-2 bg-[#071321]/90 border-t border-[#182c3f] flex flex-wrap gap-1.5">
             {quickQuestions.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSendMessage(q)}
-                className="text-[10px] font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg border border-slate-700/60 transition-colors text-left cursor-pointer active:scale-98"
+                className="text-[10px] font-normal bg-[#0a1726] hover:bg-[#0d1e2e] text-[#a9b9c3] hover:text-[#f2f4f0] px-2.5 py-1 rounded-lg border border-[#182c3f] hover:border-[#84979a40] transition-colors text-left cursor-pointer active:scale-98"
               >
                 {q}
               </button>
@@ -530,19 +530,19 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-2.5 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
+            className="p-2.5 bg-[#071321] border-t border-[#182c3f] flex items-center gap-2"
           >
             <input
               type="text"
               placeholder="Ask CASCADE about this scenario..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              className="flex-1 bg-[#061019] border border-[#182c3f] rounded-xl px-3 py-1.5 text-xs text-[#f2f4f0] placeholder-[#a9b9c3]/50 focus:outline-none focus:border-[#a8e2dc]/60"
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="p-2 rounded-xl bg-cyan-500 text-slate-950 hover:bg-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-md"
+              className="p-2 rounded-xl bg-[#e1ede6] text-[#112826] hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-sm"
               title="Send question"
             >
               <Send className="w-3.5 h-3.5" />

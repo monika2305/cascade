@@ -573,25 +573,29 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
   }
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-y-auto select-none relative">
+    <div className="w-full h-full flex-1 flex flex-col bg-[#061019] text-[#f2f4f0] overflow-y-auto select-none relative">
       {/* 1. Header & Controls */}
-      <div className="px-6 py-3 border-b border-slate-800/80 bg-slate-950/90 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+      <div className="px-6 py-3.5 border-b border-[#182c3f] bg-[#071321]/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
         <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Schematic Twin</span>
+            <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
+          </div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-base font-black tracking-wider text-white uppercase">
+            <h1 className="text-sm font-semibold tracking-wider text-[#f2f4f0] uppercase">
               CASCADE City Twin
             </h1>
-            <span className="px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-[10px] font-black text-cyan-400 uppercase tracking-widest">
-              SCHEMATIC DIGITAL TWIN
+            <span className="px-2 py-0.5 rounded-md bg-[#0a2328] border border-[#a8e2dc]/40 text-[9px] font-mono font-medium text-[#a8e2dc] uppercase tracking-widest">
+              Digital Twin
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#a9b9c3] mt-0.5 font-normal">
             Before vs After Infrastructure • Rotate either sphere to inspect in 3D
           </p>
         </div>
 
         {/* Sector Filter Bar */}
-        <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl overflow-x-auto">
+        <div className="flex items-center gap-1 bg-[#0a1726] border border-[#182c3f] p-1 rounded-xl overflow-x-auto">
           {(
             [
               { id: 'ALL', label: 'ALL' },
@@ -606,10 +610,10 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
             <button
               key={sec.id}
               onClick={() => setSectorFilter(sec.id)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
                 sectorFilter === sec.id
-                  ? 'bg-cyan-500 text-slate-950 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-[#a8e2dc] text-[#061019] shadow-sm font-semibold'
+                  : 'text-[#a9b9c3] hover:text-[#f2f4f0] hover:bg-[#071321]'
               }`}
             >
               {sec.label}
@@ -626,18 +630,18 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-between w-full max-w-[420px] px-2 mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">
+                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
                   BEFORE
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">Normal City</span>
+                <span className="text-[11px] text-[#a9b9c3] font-normal">Normal Baseline</span>
               </div>
-              <div className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
+              <div className="px-2 py-0.5 rounded-full bg-[#07261e] border border-emerald-500/30 text-[11px] font-medium font-mono text-emerald-400">
                 {totalOperatingBefore} operating
               </div>
             </div>
 
             {/* Canvas Viewport */}
-            <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center bg-slate-950/40 rounded-3xl border border-slate-800/60 p-2 shadow-2xl">
+            <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center bg-[#071321]/60 rounded-3xl border border-[#182c3f] p-2 shadow-2xl">
               <canvas
                 ref={canvasBeforeRef}
                 onPointerDown={handlePointerDown}
@@ -645,7 +649,7 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
                 onPointerUp={handlePointerUp}
                 className="w-full h-full cursor-grab active:cursor-grabbing touch-none"
               />
-              <div className="absolute bottom-3 left-4 text-[10px] text-slate-500 font-mono pointer-events-none">
+              <div className="absolute bottom-3 left-4 text-[10px] text-[#a9b9c3]/60 font-mono pointer-events-none">
                 DRAG TO ROTATE
               </div>
             </div>
@@ -655,10 +659,10 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-between w-full max-w-[420px] px-2 mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-amber-400 uppercase tracking-widest">
+                <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
                   AFTER
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-[11px] text-[#a9b9c3] font-normal">
                   {afterViewMode === 'fix' ? 'After Intervention' : 'Cascade State'}
                 </span>
               </div>
@@ -666,13 +670,13 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
               <div className="flex items-center gap-2">
                 {/* Mode Toggle (if action lab fix exists) */}
                 {bestFix && (
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-[10px] font-bold">
+                  <div className="flex items-center bg-[#0a1726] border border-[#182c3f] rounded-lg p-0.5 text-[10px] font-medium">
                     <button
                       onClick={() => setAfterViewMode('cascade')}
                       className={`px-2 py-0.5 rounded cursor-pointer ${
                         afterViewMode === 'cascade'
-                          ? 'bg-amber-500/20 text-amber-400 font-black'
-                          : 'text-slate-400 hover:text-white'
+                          ? 'bg-amber-500/20 text-amber-400 font-semibold'
+                          : 'text-[#a9b9c3] hover:text-[#f2f4f0]'
                       }`}
                     >
                       CASCADE
@@ -681,8 +685,8 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
                       onClick={() => setAfterViewMode('fix')}
                       className={`px-2 py-0.5 rounded cursor-pointer ${
                         afterViewMode === 'fix'
-                          ? 'bg-emerald-500/20 text-emerald-400 font-black'
-                          : 'text-slate-400 hover:text-white'
+                          ? 'bg-emerald-500/20 text-emerald-400 font-semibold'
+                          : 'text-[#a9b9c3] hover:text-[#f2f4f0]'
                       }`}
                     >
                       AFTER FIX
@@ -691,10 +695,10 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
                 )}
 
                 <div
-                  className={`px-2 py-0.5 rounded-full border text-[11px] font-bold ${
+                  className={`px-2 py-0.5 rounded-full border text-[11px] font-mono font-medium ${
                     afterViewMode === 'fix'
-                      ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-400'
-                      : 'bg-amber-950/60 border-amber-500/30 text-amber-400'
+                      ? 'bg-[#07261e] border-emerald-500/30 text-emerald-400'
+                      : 'bg-[#261405] border-amber-500/30 text-amber-400'
                   }`}
                 >
                   {afterViewMode === 'fix'
@@ -706,7 +710,7 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
 
             {/* Canvas Viewport */}
             {activeFailureId && cascadeResult ? (
-              <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center bg-slate-950/40 rounded-3xl border border-slate-800/60 p-2 shadow-2xl">
+              <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center bg-[#071321]/60 rounded-3xl border border-[#182c3f] p-2 shadow-2xl">
                 <canvas
                   ref={canvasAfterRef}
                   onPointerDown={handlePointerDown}
@@ -714,23 +718,23 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
                   onPointerUp={handlePointerUp}
                   className="w-full h-full cursor-grab active:cursor-grabbing touch-none"
                 />
-                <div className="absolute bottom-3 left-4 text-[10px] text-slate-500 font-mono pointer-events-none">
+                <div className="absolute bottom-3 left-4 text-[10px] text-[#a9b9c3]/60 font-mono pointer-events-none">
                   SYNCHRONIZED VIEW
                 </div>
               </div>
             ) : (
-              <div className="w-full max-w-[420px] aspect-square flex flex-col items-center justify-center bg-slate-950/40 rounded-3xl border-2 border-dashed border-slate-800 p-6 text-center">
+              <div className="w-full max-w-[420px] aspect-square flex flex-col items-center justify-center bg-[#071321]/60 rounded-3xl border border-dashed border-[#182c3f] p-6 text-center">
                 <AlertTriangle className="w-8 h-8 text-amber-400 mb-3" />
-                <h3 className="text-sm font-bold text-slate-200 mb-1">
+                <h3 className="text-sm font-semibold text-[#f2f4f0] mb-1">
                   Run a Failure Test to compare the city
                 </h3>
-                <p className="text-xs text-slate-400 mb-4 max-w-xs">
+                <p className="text-xs text-[#a9b9c3] mb-4 max-w-xs">
                   Select an infrastructure node to simulate cascade failure and view the digital twin.
                 </p>
                 {onNavigateToFailureTest && (
                   <button
                     onClick={() => onNavigateToFailureTest()}
-                    className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs rounded-xl shadow-lg cursor-pointer transition-all"
+                    className="px-4 py-2 bg-[#e1ede6] hover:bg-white text-[#112826] font-medium text-xs uppercase tracking-wider rounded-xl shadow-sm cursor-pointer transition-all"
                   >
                     TEST A FAILURE →
                   </button>
@@ -745,10 +749,10 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
           <button
             onClick={isAnimatingChange ? handleResetChange : handleTriggerShowChange}
             disabled={!cascadeResult}
-            className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl cursor-pointer transition-all active:scale-98 ${
+            className={`px-6 py-2.5 rounded-xl font-medium text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer transition-all active:scale-98 ${
               isAnimatingChange
-                ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
-                : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black shadow-cyan-500/20'
+                ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                : 'bg-[#e1ede6] hover:bg-white text-[#112826]'
             }`}
           >
             {isAnimatingChange ? (
@@ -758,7 +762,7 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-[#112826]" />
                 <span>SHOW CHANGE</span>
               </>
             )}
@@ -767,11 +771,11 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
 
         {/* 4. Selected Infrastructure Comparison Card */}
         {selectedAsset ? (
-          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 shadow-xl mb-1">
+          <div className="bg-[#0a1726] border border-[#182c3f] rounded-2xl p-4 shadow-xl mb-1">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-white">{selectedAsset.name}</span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">
+                <span className="font-semibold text-sm text-[#f2f4f0]">{selectedAsset.name}</span>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#071321] text-[#a9b9c3] border border-[#182c3f]">
                   {selectedAsset.sector}
                 </span>
               </div>
@@ -779,27 +783,27 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
               {/* Status Comparison Chips */}
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-500 font-medium">BEFORE:</span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="text-[#a9b9c3] font-mono text-[10px] uppercase">BEFORE:</span>
+                  <span className="text-emerald-400 font-medium flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Operating
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-500 font-medium">AFTER:</span>
+                  <span className="text-[#a9b9c3] font-mono text-[10px] uppercase">AFTER:</span>
                   {selectedAsset.id === activeFailureId ? (
-                    <span className="text-red-400 font-bold flex items-center gap-1">
+                    <span className="text-red-400 font-medium flex items-center gap-1">
                       <Zap className="w-3.5 h-3.5" /> Initial Failure
                     </span>
                   ) : getNodeVisualState(selectedAsset.id) === 'affected' ? (
-                    <span className="text-amber-400 font-bold flex items-center gap-1">
+                    <span className="text-amber-400 font-medium flex items-center gap-1">
                       <AlertTriangle className="w-3.5 h-3.5" /> Affected
                     </span>
                   ) : getNodeVisualState(selectedAsset.id) === 'recovered' ? (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-emerald-400 font-medium flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5" /> Protected
                     </span>
                   ) : (
-                    <span className="text-slate-400 font-medium">Unaffected</span>
+                    <span className="text-[#a9b9c3] font-normal">Unaffected</span>
                   )}
                 </div>
               </div>
@@ -807,39 +811,39 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
 
             {/* Causal Chain Trace */}
             {whyPath.length > 1 ? (
-              <div className="text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-2 overflow-x-auto">
-                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0">
+              <div className="text-xs text-[#a9b9c3] bg-[#071321] p-2.5 rounded-xl border border-[#182c3f] flex items-center gap-2 overflow-x-auto">
+                <span className="text-[10px] text-[#a8e2dc] font-mono font-medium uppercase tracking-wider shrink-0">
                   CAUSE:
                 </span>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {whyPath.map((step, idx) => (
                     <React.Fragment key={step.assetId}>
                       <span
-                        className={`font-semibold ${
+                        className={`font-medium ${
                           step.isInitialFailure
                             ? 'text-red-400'
                             : idx === whyPath.length - 1
                             ? 'text-amber-300'
-                            : 'text-slate-300'
+                            : 'text-[#f2f4f0]'
                         }`}
                       >
                         {step.assetName}
                       </span>
                       {idx < whyPath.length - 1 && (
-                        <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
+                        <ArrowRight className="w-3 h-3 text-[#182c3f] shrink-0" />
                       )}
                     </React.Fragment>
                   ))}
                 </div>
               </div>
             ) : selectedAsset.id === activeFailureId ? (
-              <div className="text-xs text-slate-400 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-                <span className="text-red-400 font-bold">{selectedAsset.name}</span> is the initial origin failure point.
+              <div className="text-xs text-[#a9b9c3] bg-[#071321] p-2.5 rounded-xl border border-[#182c3f]">
+                <span className="text-red-400 font-medium">{selectedAsset.name}</span> is the initial origin failure point.
               </div>
             ) : null}
           </div>
         ) : (
-          <div className="p-3 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800/50">
+          <div className="p-3 text-center text-xs text-[#a9b9c3] bg-[#0a1726]/60 rounded-xl border border-[#182c3f]">
             Click any node on either sphere to inspect its before/after state and causal dependency path.
           </div>
         )}

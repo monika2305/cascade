@@ -348,22 +348,23 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
   ]);
 
   return (
-    <div className="w-full h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden">
       {/* Header (ViewMode actions & comparison) */}
       {viewMode !== 'recovery' && (
-        <div className="px-6 py-3 border-b border-slate-800/80 bg-slate-950/90 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="px-6 py-3.5 border-b border-[#182c3f] bg-[#071321]/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div>
-            <h1 className="text-lg font-black text-white tracking-wide uppercase">
-              ACTION LAB
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Intervention Studio</span>
+              <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
+            </div>
+            <h1 className="text-sm font-semibold text-[#f2f4f0] tracking-wide uppercase">
+              Action Lab
             </h1>
-            <p className="text-[11px] text-slate-400">
-              "What can we do?"
-            </p>
           </div>
 
           {/* Failed Asset Context Selector */}
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-            <span className="text-slate-400 font-medium">Scenario:</span>
+          <div className="flex items-center gap-2 bg-[#0a1726] border border-[#182c3f] rounded-xl px-3 py-1.5 text-xs">
+            <span className="text-[#a9b9c3] font-medium">Scenario:</span>
             <select
               value={selectedFailureId}
               onChange={(e) => {
@@ -371,7 +372,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 setResult(null);
                 setViewMode('actions');
               }}
-              className="bg-slate-950 text-white font-bold rounded px-2 py-0.5 border border-slate-700 focus:outline-none focus:border-cyan-500 cursor-pointer"
+              className="bg-[#071321] text-[#f2f4f0] font-semibold rounded-lg px-2 py-0.5 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer"
             >
               {dataset.assets.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -387,17 +388,17 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
       {viewMode === 'actions' && (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-5xl w-full mx-auto space-y-4">
           {/* A. COMPACT CURRENT PROBLEM: Single compact horizontal status bar */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="bg-[#0a1726] border border-[#182c3f] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-red-400 font-black flex items-center gap-1.5">
+              <span className="text-red-400 font-medium flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                <span>⚠ {selectedAsset?.name || 'Service'} failed.</span>
+                <span>{selectedAsset?.name || 'Service'} failed.</span>
               </span>
-              <span className="hidden sm:inline text-xs text-slate-400 font-normal">
-                Impacts downstream network
+              <span className="hidden sm:inline text-xs text-[#a9b9c3] font-normal">
+                Impacts downstream infrastructure network
               </span>
             </div>
-            <div className="text-xs font-black font-mono text-red-400 bg-red-500/10 border border-red-500/30 px-3 py-1 rounded-lg shrink-0">
+            <div className="text-xs font-mono font-medium text-red-400 bg-[#2a0e14] border border-red-500/30 px-3 py-1 rounded-lg shrink-0">
               {baselineCascade.affectedNodes.size} affected
             </div>
           </div>
@@ -405,12 +406,12 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           {/* B. COMPACT FIX SELECTION: Valid fixes in ONE ROW when space allows */}
           <div>
             <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                CHOOSE A FIX
+              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#a9b9c3]">
+                Available Interventions
               </div>
               {recommendationData.hasTie && (
-                <div className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
-                  Multiple fixes give equal protection
+                <div className="text-[10px] font-medium text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                  Multiple fixes provide equivalent protection
                 </div>
               )}
             </div>
@@ -427,12 +428,12 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         setSelectedFixId(item.fix.id);
                         setResult(null);
                       }}
-                      className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-cyan-500/10 border-cyan-400 shadow-lg shadow-cyan-950/30 ring-1 ring-cyan-400'
+                          ? 'bg-[#071321] border-[#a8e2dc] shadow-lg shadow-black/40 ring-1 ring-[#a8e2dc]/50'
                           : item.isRecommended
-                          ? 'bg-slate-900/90 border-amber-500/50 hover:border-amber-400'
-                          : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
+                          ? 'bg-[#0a1726] border-amber-500/40 hover:border-amber-400/60'
+                          : 'bg-[#0a1726] border-[#182c3f] hover:border-[#84979a40]'
                       }`}
                     >
                       {/* Top Header & Recommended badge */}
@@ -440,38 +441,38 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xl shrink-0">{item.fix.icon}</span>
-                            <h2 className="text-xs font-black text-white uppercase tracking-wide truncate">
+                            <h2 className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wide truncate">
                               {item.fix.title}
                             </h2>
                           </div>
                           {item.isRecommended && (
-                            <span className="shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                              ⭐ Recommended
+                            <span className="shrink-0 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                              ★ Recommended
                             </span>
                           )}
                         </div>
 
                         {/* Short one-line description */}
-                        <p className="text-[11px] text-slate-300 line-clamp-2 leading-tight">
+                        <p className="text-[11px] text-[#a9b9c3] line-clamp-2 leading-relaxed">
                           {item.fix.description}
                         </p>
                       </div>
 
                       {/* Bottom row: Protects X services + select radio */}
-                      <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-800/80">
-                        <span className="text-xs font-bold text-emerald-400">
+                      <div className="flex items-center justify-between pt-2.5 mt-3 border-t border-[#182c3f]">
+                        <span className="text-xs font-semibold text-emerald-400 font-mono">
                           {item.servicesProtected > 0
                             ? `Protects ${item.servicesProtected}`
                             : 'Protects 0'}
                         </span>
                         <div
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'border-cyan-400 bg-cyan-500'
-                              : 'border-slate-600 bg-slate-900'
+                              ? 'border-[#a8e2dc] bg-[#a8e2dc]'
+                              : 'border-[#182c3f] bg-[#071321]'
                           }`}
                         >
-                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#061019]" />}
                         </div>
                       </div>
                     </div>
@@ -479,7 +480,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 })}
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-center text-slate-400 text-xs">
+              <div className="p-4 rounded-xl bg-[#0a1726] border border-[#182c3f] text-center text-[#a9b9c3] text-xs">
                 No usable backup option was found in this city data.
               </div>
             )}
@@ -487,55 +488,55 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
           {/* C. COMPACT TEST BUTTON */}
           {availableFixes.length > 0 && (
-            <div className="flex justify-center pt-0.5">
+            <div className="flex justify-center pt-1">
               <button
                 onClick={handleTestFix}
                 disabled={!selectedFixId}
-                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/40 transition-all cursor-pointer active:scale-98 flex items-center gap-2"
+                className="px-6 py-2.5 bg-[#e1ede6] hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed text-[#112826] font-medium text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all cursor-pointer active:scale-98 flex items-center gap-2"
               >
                 <span>TEST THIS FIX</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
           {/* D. COMPACT BEFORE / AFTER RESULT STRIP */}
           {result && activeFix && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3 animate-fade-in">
+            <div className="bg-[#0a1726] border border-[#182c3f] rounded-2xl p-4 shadow-xl space-y-3 animate-fade-in">
               {/* Single compact result strip */}
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 border border-slate-800/80 rounded-xl px-4 py-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#071321] border border-[#182c3f] rounded-xl px-4 py-2.5">
                 <div className="flex items-center gap-4 sm:gap-6">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#a9b9c3] block">
                       BEFORE
                     </span>
-                    <span className="text-base sm:text-lg font-black text-red-400 font-mono">
+                    <span className="text-base sm:text-lg font-semibold text-red-400 font-mono">
                       {result.beforeAffectedCount}{' '}
-                      <span className="text-xs font-normal text-slate-400">affected</span>
+                      <span className="text-xs font-normal text-[#a9b9c3]">affected</span>
                     </span>
                   </div>
 
-                  <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-[#182c3f] shrink-0" />
 
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#a9b9c3] block">
                       AFTER
                     </span>
-                    <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                    <span className="text-base sm:text-lg font-semibold text-emerald-400 font-mono">
                       {result.afterAffectedCount}{' '}
-                      <span className="text-xs font-normal text-slate-400">affected</span>
+                      <span className="text-xs font-normal text-[#a9b9c3]">affected</span>
                     </span>
                   </div>
                 </div>
 
                 <div>
                   {result.savedAssetsCount > 0 ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-[#07261e] text-emerald-300 border border-emerald-500/40 font-mono">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                       <span>✓ {result.savedAssetsCount} PROTECTED</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium uppercase tracking-wider bg-[#071321] text-[#a9b9c3] border border-[#182c3f]">
                       <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
                       <span>0 PROTECTED</span>
                     </span>
@@ -545,21 +546,21 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
               {/* WHY DID THIS HELP? (Max 1-2 lines) */}
               <div className="px-1 text-xs">
-                <div className="text-[10px] font-black uppercase tracking-wider text-emerald-400 mb-0.5">
-                  WHY DID THIS HELP?
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400 mb-1">
+                  Why Did This Help?
                 </div>
-                <p className="text-slate-300 line-clamp-2 leading-relaxed">
+                <p className="text-[#a9b9c3] line-clamp-2 leading-relaxed">
                   {getInterventionExplanation(dataset, result, activeFix)}
                 </p>
               </div>
 
               {/* Action Buttons: VIEW WHAT CHANGED & WATCH RECOVERY */}
-              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-slate-800/80">
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-[#182c3f]">
                 <button
                   onClick={() => setViewMode('comparison')}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#071321] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs uppercase tracking-wider rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors flex items-center gap-1.5"
                 >
-                  <Network className="w-3.5 h-3.5 text-cyan-400" />
+                  <Network className="w-3.5 h-3.5 text-[#a8e2dc]" />
                   <span>VIEW WHAT CHANGED</span>
                 </button>
 
@@ -571,9 +572,9 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     setHighlightMode('all');
                     setDetailDrawer(null);
                   }}
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md cursor-pointer transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#e1ede6] hover:bg-white text-[#112826] font-medium text-xs uppercase tracking-wider rounded-xl shadow-sm cursor-pointer transition-colors flex items-center gap-1.5"
                 >
-                  <Play className="w-3.5 h-3.5 fill-slate-950" />
+                  <Play className="w-3.5 h-3.5 fill-[#112826]" />
                   <span>WATCH RECOVERY</span>
                 </button>
               </div>
@@ -586,27 +587,28 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
       {viewMode === 'recovery' && result && (
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col">
           {/* 1. TOP SUMMARY — HERO HEADER */}
-          <div className="px-6 py-3 border-b border-slate-800 bg-slate-950/95 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+          <div className="px-6 py-3.5 border-b border-[#182c3f] bg-[#071321]/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
             <div className="flex items-center gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base font-black text-white uppercase tracking-wider">
-                    CITY RECOVERY
-                  </h1>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase">
-                    Simulator
-                  </span>
+                  <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Restoration Studio</span>
+                  <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
-                  <span className="text-red-400 font-bold flex items-center gap-1">
+                <div className="flex items-center gap-2 mt-0.5">
+                  <h1 className="text-sm font-semibold text-[#f2f4f0] uppercase tracking-wide">
+                    City Recovery Simulator
+                  </h1>
+                </div>
+                <div className="text-xs text-[#a9b9c3] mt-0.5 flex flex-wrap items-center gap-2">
+                  <span className="text-red-400 font-medium flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     {selectedAsset?.name || 'Service'} failed
                   </span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-slate-300">
-                    <strong className="text-red-400 font-mono">{result.beforeAffectedCount}</strong> affected before
+                  <span className="text-[#182c3f]">•</span>
+                  <span className="text-[#a9b9c3]">
+                    <strong className="text-red-400 font-mono font-medium">{result.beforeAffectedCount}</strong> affected before
                     {' '}→{' '}
-                    <strong className="text-amber-400 font-mono">{result.afterAffectedCount}</strong> still affected
+                    <strong className="text-amber-400 font-mono font-medium">{result.afterAffectedCount}</strong> still affected
                   </span>
                 </div>
               </div>
@@ -614,16 +616,16 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
             {/* The strongest visual hero number */}
             <div className="flex items-center gap-3">
-              <div className="bg-emerald-500/15 border-2 border-emerald-500/50 px-4 py-1.5 rounded-xl shadow-lg shadow-emerald-950/30 flex items-center gap-2">
+              <div className="bg-[#07261e] border border-emerald-500/40 px-4 py-1.5 rounded-xl shadow-lg shadow-black/40 flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                 <div>
-                  <div className="text-[9px] font-black uppercase tracking-wider text-emerald-400/80">
+                  <div className="text-[9px] font-mono uppercase tracking-wider text-emerald-400/90">
                     Protection Impact
                   </div>
-                  <div className="text-xl font-black text-emerald-400 font-mono leading-none">
+                  <div className="text-lg font-semibold text-emerald-300 font-mono leading-none mt-0.5">
                     ✓ {activeRecoveredCount} RECOVERED
                     {activeRecoveredCount < result.savedAssetsCount && (
-                      <span className="text-xs text-emerald-300/70 ml-1 font-normal">
+                      <span className="text-xs text-emerald-400/70 ml-1 font-normal">
                         / {result.savedAssetsCount}
                       </span>
                     )}
@@ -636,7 +638,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setIsAutoPlaying(false);
                   setViewMode('actions');
                 }}
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
               >
                 Back to Actions
               </button>
@@ -644,23 +646,23 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           </div>
 
           {/* 2. RECOVERY PROGRESS BAR */}
-          <div className="px-6 py-2 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
+          <div className="px-6 py-2.5 bg-[#0a1726] border-b border-[#182c3f] flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
             {/* 3-Stage Progress Indicator */}
             <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl">
               {/* Stage 1: FAILURE */}
               <div className="flex items-center gap-1.5">
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
                     recoveryIndex === -1
                       ? 'bg-red-500 text-white ring-2 ring-red-400/40 animate-pulse'
-                      : 'bg-red-950 text-red-400 border border-red-800'
+                      : 'bg-[#2a0e14] text-red-400 border border-red-800/60'
                   }`}
                 >
                   1
                 </div>
                 <span
-                  className={`font-black uppercase tracking-wider text-[11px] ${
-                    recoveryIndex === -1 ? 'text-red-400' : 'text-slate-400'
+                  className={`font-mono uppercase tracking-wider text-[11px] ${
+                    recoveryIndex === -1 ? 'text-red-400 font-semibold' : 'text-[#a9b9c3]'
                   }`}
                 >
                   FAILURE
@@ -670,26 +672,26 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               {/* Connecting Line 1 */}
               <div
                 className={`flex-1 h-0.5 rounded transition-colors ${
-                  recoveryIndex >= 0 ? 'bg-cyan-500' : 'bg-slate-800'
+                  recoveryIndex >= 0 ? 'bg-[#a8e2dc]' : 'bg-[#182c3f]'
                 }`}
               />
 
               {/* Stage 2: FIX APPLIED */}
               <div className="flex items-center gap-1.5">
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
                     recoveryIndex >= 0 && !isComplete
-                      ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-400/40 animate-pulse'
+                      ? 'bg-[#a8e2dc] text-[#061019] ring-2 ring-[#a8e2dc]/40 animate-pulse'
                       : isComplete
-                      ? 'bg-cyan-950 text-cyan-400 border border-cyan-700'
-                      : 'bg-slate-800 text-slate-500'
+                      ? 'bg-[#0a2328] text-[#a8e2dc] border border-[#a8e2dc]/60'
+                      : 'bg-[#071321] text-[#a9b9c3]'
                   }`}
                 >
                   2
                 </div>
                 <span
-                  className={`font-black uppercase tracking-wider text-[11px] ${
-                    recoveryIndex >= 0 ? 'text-cyan-400' : 'text-slate-500'
+                  className={`font-mono uppercase tracking-wider text-[11px] ${
+                    recoveryIndex >= 0 ? 'text-[#a8e2dc] font-semibold' : 'text-[#a9b9c3]'
                   }`}
                 >
                   FIX APPLIED
@@ -699,30 +701,30 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
               {/* Connecting Line 2 */}
               <div
                 className={`flex-1 h-0.5 rounded transition-colors ${
-                  isComplete ? 'bg-emerald-500' : 'bg-slate-800'
+                  isComplete ? 'bg-emerald-500' : 'bg-[#182c3f]'
                 }`}
               />
 
               {/* Stage 3: RECOVERY */}
               <div className="flex items-center gap-1.5">
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
                     isComplete
                       ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40'
                       : recoveryIndex >= 0
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse'
-                      : 'bg-slate-800 text-slate-500'
+                      ? 'bg-[#07261e] text-emerald-400 border border-emerald-800/60 animate-pulse'
+                      : 'bg-[#071321] text-[#a9b9c3]'
                   }`}
                 >
                   {isComplete ? '✓' : '3'}
                 </div>
                 <span
-                  className={`font-black uppercase tracking-wider text-[11px] ${
+                  className={`font-mono uppercase tracking-wider text-[11px] ${
                     isComplete
-                      ? 'text-emerald-400'
+                      ? 'text-emerald-400 font-semibold'
                       : recoveryIndex >= 0
                       ? 'text-emerald-300'
-                      : 'text-slate-500'
+                      : 'text-[#a9b9c3]'
                   }`}
                 >
                   RECOVERY
@@ -737,10 +739,10 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const next = !isFullCityView;
                   setIsFullCityView(next);
                 }}
-                className={`px-3 py-1 text-xs font-bold rounded-lg border transition-colors cursor-pointer ${
+                className={`px-3 py-1 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
                   isFullCityView
-                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
-                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                    ? 'bg-[#a8e2dc]/10 border-[#a8e2dc] text-[#a8e2dc]'
+                    : 'bg-[#071321] hover:bg-[#0d1e2e] border-[#182c3f] text-[#a9b9c3]'
                 }`}
               >
                 {isFullCityView ? 'FOCUS RECOVERY ONLY' : 'VIEW FULL CITY'}
@@ -749,7 +751,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           </div>
 
           {/* 8. CONTROLS TOOLBAR */}
-          <div className="px-6 py-2.5 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10">
+          <div className="px-6 py-2.5 bg-[#071321]/95 border-b border-[#182c3f] flex flex-wrap items-center justify-between gap-3 shrink-0 z-10">
             <div className="flex items-center gap-2">
               {/* PRIMARY: START RECOVERY */}
               <button
@@ -759,16 +761,16 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   }
                   setIsAutoPlaying(!isAutoPlaying);
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-950/40 cursor-pointer transition-all active:scale-98 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#e1ede6] hover:bg-white text-[#112826] font-medium text-xs uppercase tracking-wider rounded-xl shadow-sm cursor-pointer transition-all active:scale-98 flex items-center gap-1.5"
               >
                 {isAutoPlaying ? (
                   <>
-                    <Pause className="w-3.5 h-3.5 fill-slate-950" />
+                    <Pause className="w-3.5 h-3.5 fill-[#112826]" />
                     <span>PAUSE</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-3.5 h-3.5 fill-slate-950" />
+                    <Play className="w-3.5 h-3.5 fill-[#112826]" />
                     <span>{isComplete ? 'REPLAY RECOVERY' : 'START RECOVERY'}</span>
                   </>
                 )}
@@ -781,7 +783,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setRecoveryIndex((prev) => Math.min(prev + 1, recoverySteps.length - 1));
                 }}
                 disabled={isComplete}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-200 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
+                className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] disabled:opacity-30 disabled:cursor-not-allowed text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors flex items-center gap-1"
               >
                 <span>NEXT</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -794,7 +796,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setRecoveryIndex(recoverySteps.length - 1);
                 }}
                 disabled={isComplete}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors flex items-center gap-1"
+                className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] disabled:opacity-30 disabled:cursor-not-allowed text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors flex items-center gap-1"
               >
                 <SkipForward className="w-3.5 h-3.5" />
                 <span>COMPLETE</span>
@@ -807,7 +809,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setRecoveryIndex(-1);
                   setHighlightMode('all');
                 }}
-                className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-bold text-xs rounded-xl border border-slate-800 cursor-pointer transition-colors flex items-center gap-1"
+                className="px-3 py-2 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer transition-colors flex items-center gap-1"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>RESET</span>
@@ -817,10 +819,10 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
             {/* Honest Status Breakdown & Filter Toggle */}
             <div className="flex items-center gap-3 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-lg text-xs">
+                <span className="font-medium font-mono text-emerald-400 bg-[#07261e] border border-emerald-500/30 px-2.5 py-0.5 rounded-lg text-xs">
                   ✓ {activeRecoveredCount} Recovered
                 </span>
-                <span className="font-bold text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-lg text-xs">
+                <span className="font-medium font-mono text-amber-400 bg-[#261405] border border-amber-500/30 px-2.5 py-0.5 rounded-lg text-xs">
                   ⚠ {currentAffectedCount} Still Down
                 </span>
               </div>
@@ -830,10 +832,10 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 onClick={() =>
                   setHighlightMode((prev) => (prev === 'still_affected' ? 'all' : 'still_affected'))
                 }
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer ${
                   highlightMode === 'still_affected'
-                    ? 'bg-orange-500/25 border-orange-500 text-orange-300 ring-1 ring-orange-500'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+                    ? 'bg-amber-500/15 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
+                    : 'bg-[#0a1726] hover:bg-[#0d1e2e] border-[#182c3f] text-[#a9b9c3]'
                 }`}
               >
                 {highlightMode === 'still_affected' ? 'SHOW ALL' : 'SHOW STILL AFFECTED'}
@@ -849,7 +851,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onWheel={handleWheel}
-            className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${
+            className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[#061019] bg-[radial-gradient(#182c3f_1px,transparent_1px)] [background-size:24px_24px] ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
           >
@@ -987,36 +989,36 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
                   const isHovered = hoveredNodeId === asset.id;
 
-                  let bgColor = '#090d16';
-                  let borderColor = '#1e293b';
-                  let textColor = '#475569';
+                  let bgColor = '#0a1726';
+                  let borderColor = '#182c3f';
+                  let textColor = '#64748b';
                   let badgeText = 'SAFE';
-                  let badgeBg = 'bg-slate-800/80 text-slate-400 border border-slate-700/60';
+                  let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
 
                   if (status === 'failed') {
-                    bgColor = '#450a0a';
+                    bgColor = '#2a0e14';
                     borderColor = '#ef4444';
                     textColor = '#fee2e2';
                     badgeText = 'FAILED';
-                    badgeBg = 'bg-red-600 text-white font-black';
+                    badgeBg = 'bg-red-600 text-white font-semibold';
                   } else if (status === 'recovered') {
-                    bgColor = '#064e3b';
+                    bgColor = '#07261e';
                     borderColor = '#10b981';
                     textColor = '#d1fae5';
                     badgeText = '✓ RECOVERED';
-                    badgeBg = 'bg-emerald-500 text-slate-950 font-black';
+                    badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
                   } else if (status === 'affected') {
-                    bgColor = '#431407';
-                    borderColor = '#ea580c';
+                    bgColor = '#261405';
+                    borderColor = '#f97316';
                     textColor = '#ffedd5';
                     badgeText = isComplete && afterAffectedSet.has(asset.id) ? 'STILL DOWN' : 'AFFECTED';
-                    badgeBg = 'bg-orange-600 text-white font-bold';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
                   } else if (status === 'backup_source') {
-                    bgColor = '#083344';
-                    borderColor = '#06b6d4';
-                    textColor = '#cffafe';
+                    bgColor = '#08252a';
+                    borderColor = '#a8e2dc';
+                    textColor = '#a8e2dc';
                     badgeText = 'BACKUP FEED';
-                    badgeBg = 'bg-cyan-500 text-slate-950 font-black';
+                    badgeBg = 'bg-[#a8e2dc] text-[#061019] font-semibold';
                   }
 
                   return (
@@ -1189,18 +1191,18 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           </div>
 
           {/* 7. SIMPLE RECOVERY STORY AT BOTTOM & COMPLETION ACTIONS */}
-          <div className="px-6 py-2.5 bg-slate-950/95 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
+          <div className="px-6 py-3 bg-[#071321]/95 border-t border-[#182c3f] flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 text-xs">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div
                 className={`w-2 h-2 rounded-full shrink-0 ${
                   isComplete
                     ? 'bg-emerald-400'
                     : recoveryIndex >= 0
-                    ? 'bg-cyan-400 animate-ping'
+                    ? 'bg-[#a8e2dc] animate-ping'
                     : 'bg-red-400'
                 }`}
               />
-              <div className="text-slate-300 font-medium leading-tight truncate">
+              <div className="text-[#f2f4f0] font-normal leading-tight truncate">
                 {currentRecoveryStory}
               </div>
             </div>
@@ -1212,7 +1214,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   onClick={() =>
                     setDetailDrawer((prev) => (prev === 'recovered' ? null : 'recovered'))
                   }
-                  className="px-3 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold text-xs rounded-lg border border-emerald-500/40 cursor-pointer transition-colors"
+                  className="px-3 py-1 bg-[#07261e] hover:bg-[#0c372c] text-emerald-300 font-medium text-xs rounded-lg border border-emerald-500/40 cursor-pointer transition-colors"
                 >
                   SEE RECOVERED SERVICES ({result.savedAssetsCount})
                 </button>
@@ -1222,9 +1224,9 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     onClick={() =>
                       setDetailDrawer((prev) => (prev === 'still_affected' ? null : 'still_affected'))
                     }
-                    className="px-3 py-1 bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 font-bold text-xs rounded-lg border border-orange-500/40 cursor-pointer transition-colors"
+                    className="px-3 py-1 bg-[#261405] hover:bg-[#381e08] text-amber-300 font-medium text-xs rounded-lg border border-amber-500/40 cursor-pointer transition-colors"
                   >
-                    SEE WHAT IS STILL AFFECTED ({result.afterAffectedCount})
+                    SEE STILL AFFECTED ({result.afterAffectedCount})
                   </button>
                 )}
               </div>
@@ -1237,42 +1239,46 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
       {viewMode === 'comparison' && result && (
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col">
           {/* Subheader bar: WHAT CHANGED AFTER THE FIX? */}
-          <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/95 flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
+          <div className="px-6 py-3.5 border-b border-[#182c3f] bg-[#071321]/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
             <div className="space-y-0.5">
-              <div className="text-xs font-black text-emerald-400 uppercase tracking-wider">
-                WHAT CHANGED AFTER THE FIX?
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Impact Delta</span>
+                <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
               </div>
-              <div className="text-xs text-slate-300 font-medium flex flex-wrap items-center gap-2.5">
+              <h2 className="text-sm font-semibold text-[#f2f4f0] uppercase tracking-wide">
+                Differential Network Comparison
+              </h2>
+              <div className="text-xs text-[#a9b9c3] font-normal flex flex-wrap items-center gap-2.5 mt-0.5">
                 <span>
-                  Before: <strong className="text-red-400 font-mono">{result.beforeAffectedCount}</strong> affected
+                  Before: <strong className="text-red-400 font-mono font-medium">{result.beforeAffectedCount}</strong> affected
                 </span>
-                <span>•</span>
+                <span className="text-[#182c3f]">•</span>
                 <span>
-                  After: <strong className="text-emerald-400 font-mono">{result.afterAffectedCount}</strong> affected
+                  After: <strong className="text-emerald-400 font-mono font-medium">{result.afterAffectedCount}</strong> affected
                 </span>
-                <span>•</span>
-                <span className="text-emerald-400 font-bold">
-                  🟢 {result.savedAssetsCount} services saved
+                <span className="text-[#182c3f]">•</span>
+                <span className="text-emerald-400 font-medium font-mono">
+                  ✓ {result.savedAssetsCount} services saved
                 </span>
               </div>
             </div>
 
             {/* Simple Legend: Failed, Saved, Still Affected, Not Affected */}
-            <div className="flex items-center gap-3 text-xs bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
-              <span className="flex items-center gap-1.5 text-red-400 font-bold">
+            <div className="flex items-center gap-3 text-xs bg-[#0a1726] px-3.5 py-1.5 rounded-xl border border-[#182c3f]">
+              <span className="flex items-center gap-1.5 text-red-400 font-medium">
                 <span className="w-2 h-2 rounded-full bg-red-500" />
                 <span>Failed</span>
               </span>
-              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span>Saved</span>
               </span>
-              <span className="flex items-center gap-1.5 text-orange-400 font-bold">
-                <span className="w-2 h-2 rounded-full bg-orange-500" />
+              <span className="flex items-center gap-1.5 text-amber-400 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span>Still Affected</span>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-400 font-bold">
-                <span className="w-2 h-2 rounded-full bg-slate-600" />
+              <span className="flex items-center gap-1.5 text-[#a9b9c3] font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#182c3f]" />
                 <span>Not Affected</span>
               </span>
             </div>
@@ -1284,7 +1290,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setIsFullCityView(next);
                   fitGraph(next ? null : relevantNodeIds);
                 }}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#a8e2dc] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
                 title={isFullCityView ? 'Focus on cascade impact area' : 'View all assets in the city'}
               >
                 {isFullCityView ? 'FOCUS IMPACT' : 'VIEW FULL CITY'}
@@ -1296,15 +1302,15 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   setRecoveryIndex(-1);
                   setIsAutoPlaying(false);
                 }}
-                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow cursor-pointer transition-colors flex items-center gap-1"
+                className="px-3.5 py-2 bg-[#e1ede6] hover:bg-white text-[#112826] font-medium text-xs uppercase tracking-wider rounded-xl shadow-sm cursor-pointer transition-colors flex items-center gap-1.5"
               >
-                <Play className="w-3.5 h-3.5 fill-slate-950" />
-                <span>Watch Recovery</span>
+                <Play className="w-3.5 h-3.5 fill-[#112826]" />
+                <span>WATCH RECOVERY</span>
               </button>
 
               <button
                 onClick={() => setViewMode('actions')}
-                className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
               >
                 Back to Actions
               </button>
@@ -1319,7 +1325,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onWheel={handleWheel}
-            className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${
+            className={`flex-1 w-full h-full relative select-none overflow-hidden bg-[#061019] bg-[radial-gradient(#182c3f_1px,transparent_1px)] [background-size:24px_24px] ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
           >
@@ -1421,30 +1427,30 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const { asset } = node;
                   const status = getComparisonStatus(asset.id);
 
-                  let bgColor = '#090d16';
-                  let borderColor = '#1e293b';
-                  let textColor = '#475569';
+                  let bgColor = '#0a1726';
+                  let borderColor = '#182c3f';
+                  let textColor = '#64748b';
                   let badgeText = 'NOT AFFECTED';
-                  let badgeBg = 'bg-slate-800/80 text-slate-400 border border-slate-700/60';
+                  let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
 
                   if (status === 'failed') {
-                    bgColor = '#450a0a';
+                    bgColor = '#2a0e14';
                     borderColor = '#ef4444';
                     textColor = '#fee2e2';
                     badgeText = 'FAILED';
-                    badgeBg = 'bg-red-600 text-white font-black';
+                    badgeBg = 'bg-red-600 text-white font-semibold';
                   } else if (status === 'saved') {
-                    bgColor = '#064e3b';
+                    bgColor = '#07261e';
                     borderColor = '#10b981';
                     textColor = '#d1fae5';
                     badgeText = 'SAVED';
-                    badgeBg = 'bg-emerald-500 text-slate-950 font-black';
+                    badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
                   } else if (status === 'still_affected') {
-                    bgColor = '#431407';
-                    borderColor = '#ea580c';
+                    bgColor = '#261405';
+                    borderColor = '#f97316';
                     textColor = '#ffedd5';
                     badgeText = 'STILL AFFECTED';
-                    badgeBg = 'bg-orange-600 text-white font-bold';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
                   }
 
                   return (
