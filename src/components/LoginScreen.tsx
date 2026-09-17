@@ -5,9 +5,10 @@ import { GitFork, ArrowRight, User } from 'lucide-react';
 
 interface LoginScreenProps {
   onLogin: (name: string, role: UserRole) => void;
+  onBackToLanding?: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBackToLanding }) => {
   const [name, setName] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
 
@@ -91,6 +92,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             <span>CONTINUE</span>
             <ArrowRight className={`w-4 h-4 ${isValid ? 'group-hover:translate-x-1 transition-transform' : ''}`} />
           </button>
+
+          {/* Back to Overview / Landing Page */}
+          {onBackToLanding && (
+            <div className="pt-1 text-center">
+              <button
+                type="button"
+                onClick={onBackToLanding}
+                className="text-xs font-semibold text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
+              >
+                ← Back to Overview
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

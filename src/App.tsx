@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UserRole, InfrastructureDataset } from './types/infrastructure';
+import LandingPage from './landing/LandingPage';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar, type ScreenId } from './components/Sidebar';
 import { UploadScreen } from './components/UploadScreen';
@@ -18,14 +19,37 @@ interface UserSession {
 }
 
 export function App() {
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname) {
+      return window.location.pathname;
+    }
+    return '/';
+  });
   const [user, setUser] = useState<UserSession | null>(null);
   const [activeScreen, setActiveScreen] = useState<ScreenId>('upload');
   const [dataset, setDataset] = useState<InfrastructureDataset | null>(null);
   const [selectedFailureAssetId, setSelectedFailureAssetId] = useState<string | null>(null);
 
+  // Sync browser back/forward history navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined' && window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+    setCurrentPath(path);
+  };
+
   const handleLogin = (name: string, role: UserRole) => {
     setUser({ name, role });
     setActiveScreen('upload');
+    navigateTo('/dashboard');
   };
 
   const handleLogout = () => {
@@ -33,6 +57,7 @@ export function App() {
     setDataset(null);
     setActiveScreen('upload');
     setSelectedFailureAssetId(null);
+    navigateTo('/login');
   };
 
   const handleDatasetLoaded = (newDataset: InfrastructureDataset) => {
@@ -48,9 +73,24 @@ export function App() {
     setActiveScreen('failure-test');
   };
 
-  // S1 — Login Screen
+  // Route 1 — Cinematic Landing Page (/ or default unauthenticated root)
+  if (!user && (currentPath === '/' || currentPath === '' || currentPath === '/index.html')) {
+    return (
+      <LandingPage
+        exploreHref="/login"
+        onExplore={() => navigateTo('/login')}
+      />
+    );
+  }
+
+  // Route 2 — Login Screen (/login or non-root unauthenticated route)
   if (!user) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onBackToLanding={() => navigateTo('/')}
+      />
+    );
   }
 
   return (
