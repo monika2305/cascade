@@ -135,10 +135,11 @@ export const RecoveryPlannerScreen: React.FC<RecoveryPlannerScreenProps> = ({
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 75,
+    padding: 48,
     minZoom: 0.25,
-    maxZoom: 2.2,
-    targetMaxZoom: 1.05,
+    maxZoom: 2.5,
+    targetMaxZoom: 1.85,
+    targetOccupancy: 0.82,
   });
 
   // Auto-fit when opening simulation

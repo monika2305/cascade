@@ -11,29 +11,66 @@ export interface LayoutNode {
 
 export const NODE_WIDTH = 210;
 export const NODE_HEIGHT = 64;
-export const LAYER_X_GAP = 300;
-export const LAYER_Y_GAP = 96;
+export const LAYER_X_GAP = 280;
+export const LAYER_Y_GAP = 82;
+export const TIER_Y_GAP = 250;
 
-// Deterministic sector sorting priority (upstream providers first, critical downstream last)
-const SECTOR_PRIORITY: Record<string, number> = {
-  Power: 1,
-  Water: 2,
-  Transport: 3,
-  Communication: 4,
-  'Emergency Services': 5,
-  Health: 6,
-};
-
-function getSectorWeight(sector?: string): number {
-  return (sector && SECTOR_PRIORITY[sector]) || 99;
+/**
+ * Determines infrastructure tier:
+ * Tier 0: Upstream Lifeline Utilities (Power, Energy, Water, Gas, Fuel)
+ * Tier 1: Middle Mobility & Connectivity (Transport, Communication, Telecom)
+ * Tier 2: Downstream Human Protection (Health, Emergency Services, Hospitals, Public Safety)
+ */
+export function getSectorTier(sector?: string): number {
+  if (!sector) return 1;
+  const s = sector.toLowerCase();
+  if (
+    s.includes('power') ||
+    s.includes('energy') ||
+    s.includes('water') ||
+    s.includes('fuel') ||
+    s.includes('gas') ||
+    s.includes('electric')
+  ) {
+    return 0;
+  }
+  if (
+    s.includes('transport') ||
+    s.includes('transit') ||
+    s.includes('comm') ||
+    s.includes('telecom') ||
+    s.includes('logistics') ||
+    s.includes('network') ||
+    s.includes('road')
+  ) {
+    return 1;
+  }
+  if (
+    s.includes('health') ||
+    s.includes('emerg') ||
+    s.includes('hospital') ||
+    s.includes('safety') ||
+    s.includes('public') ||
+    s.includes('gov') ||
+    s.includes('clinic') ||
+    s.includes('fire') ||
+    s.includes('police')
+  ) {
+    return 2;
+  }
+  return 1;
 }
 
 /**
- * Computes a clean, deterministic layered DAG layout for infrastructure assets.
- * Layers are assigned via topological distance from root nodes (in-degree 0).
- * Within each layer, nodes are sorted using barycentric heuristics to minimize line crossings
- * and keep connected nodes vertically adjacent.
- * Nodes in each layer are centered vertically around y = 0.
+ * Computes a clean, balanced, high-readability DAG layout for infrastructure assets.
+ * 
+ * Instead of stretching out horizontally into an ultra-wide ribbon (which forces extreme
+ * downscaling on standard 16:9 displays and makes node labels illegible), this layout:
+ * 1. Groups assets into balanced functional vertical tiers (Power & Water -> Transport & Comms -> Health & Emergency).
+ * 2. Arranges assets within each tier across columns based on topological dependency order.
+ * 3. Enforces that downstream assets never appear before their upstream dependencies.
+ * 4. Yields a balanced ~16:9 aspect ratio (~1050px x 728px for sample city) allowing 75-85%
+ *    canvas occupancy with large, legible node cards at 100% browser zoom.
  */
 export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, LayoutNode> {
   const nodes = new Map<string, LayoutNode>();
@@ -61,138 +98,157 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
     }
   }
 
-  // 1. Assign layers via topological BFS from root sources (in-degree 0)
-  const layerMap = new Map<string, number>();
-  const queue: string[] = [];
-
-  // Sort root nodes deterministically by sector priority, then ID
+  // 1. Assign topological levels via BFS from roots
+  const globalLevel = new Map<string, number>();
   const roots = dataset.assets.filter((a) => (inDegreeMap.get(a.id) || 0) === 0);
-  roots.sort((a, b) => getSectorWeight(a.sector) - getSectorWeight(b.sector) || a.id.localeCompare(b.id));
+  roots.sort((a, b) => a.id.localeCompare(b.id));
 
-  for (const r of roots) {
-    layerMap.set(r.id, 0);
+  const queue: string[] = [];
+  roots.forEach((r) => {
+    globalLevel.set(r.id, 0);
     queue.push(r.id);
-  }
+  });
 
   // Cycle fallback: if graph has no in-degree 0 nodes, seed with first asset
   if (queue.length === 0 && dataset.assets.length > 0) {
-    layerMap.set(dataset.assets[0].id, 0);
+    globalLevel.set(dataset.assets[0].id, 0);
     queue.push(dataset.assets[0].id);
   }
 
   const visitedCount = new Map<string, number>();
+  let maxGlobalLevel = 0;
   while (queue.length > 0) {
     const u = queue.shift()!;
-    const curLayer = layerMap.get(u) || 0;
+    const curLevel = globalLevel.get(u) || 0;
     const count = visitedCount.get(u) || 0;
     if (count > dataset.assets.length * 3) continue; // cycle prevention
     visitedCount.set(u, count + 1);
 
     const neighbors = outgoingMap.get(u) || [];
     for (const v of neighbors) {
-      const existingLayer = layerMap.get(v);
-      if (existingLayer === undefined || existingLayer < curLayer + 1) {
-        layerMap.set(v, curLayer + 1);
+      const existingLevel = globalLevel.get(v);
+      if (existingLevel === undefined || existingLevel < curLevel + 1) {
+        const nextLevel = curLevel + 1;
+        globalLevel.set(v, nextLevel);
+        if (nextLevel > maxGlobalLevel) maxGlobalLevel = nextLevel;
         queue.push(v);
       }
     }
   }
 
-  // Handle any remaining unvisited nodes (e.g. disconnected components)
+  // Handle any remaining unvisited nodes
   for (const a of dataset.assets) {
-    if (!layerMap.has(a.id)) {
-      layerMap.set(a.id, 0);
+    if (!globalLevel.has(a.id)) {
+      globalLevel.set(a.id, 0);
     }
   }
 
-  // 2. Group assets by layer
-  const layerBuckets = new Map<number, Asset[]>();
-  for (const a of dataset.assets) {
-    const l = layerMap.get(a.id) || 0;
-    if (!layerBuckets.has(l)) {
-      layerBuckets.set(l, []);
+  // If graph is small (<= 6 assets), use standard single-tier topological layout
+  if (dataset.assets.length <= 6) {
+    const levelBuckets = new Map<number, Asset[]>();
+    for (const a of dataset.assets) {
+      const l = globalLevel.get(a.id) || 0;
+      if (!levelBuckets.has(l)) levelBuckets.set(l, []);
+      levelBuckets.get(l)!.push(a);
     }
-    layerBuckets.get(l)!.push(a);
+
+    const sortedLevels = Array.from(levelBuckets.keys()).sort((a, b) => a - b);
+    sortedLevels.forEach((levelIdx) => {
+      const assetsInLevel = levelBuckets.get(levelIdx)!;
+      const totalHeight = assetsInLevel.length * LAYER_Y_GAP;
+      const startY = -totalHeight / 2 + LAYER_Y_GAP / 2;
+
+      assetsInLevel.forEach((asset, idx) => {
+        nodes.set(asset.id, {
+          asset,
+          x: levelIdx * LAYER_X_GAP,
+          y: startY + idx * LAYER_Y_GAP,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
+          level: levelIdx,
+        });
+      });
+    });
+    return nodes;
   }
 
-  const sortedLayers = Array.from(layerBuckets.keys()).sort((a, b) => a - b);
-
-  // 3. Barycentric ordering to minimize crossing lines
-  const nodeOrderIndex = new Map<string, number>();
-
-  // Layer 0 initial ordering: sector priority, then ID
-  if (layerBuckets.has(0)) {
-    const l0 = layerBuckets.get(0)!;
-    l0.sort((a, b) => getSectorWeight(a.sector) - getSectorWeight(b.sector) || a.id.localeCompare(b.id));
-    l0.forEach((a, idx) => nodeOrderIndex.set(a.id, idx));
+  // 2. Group assets into 3 functional vertical tiers
+  const tierBuckets: Asset[][] = [[], [], []];
+  for (const a of dataset.assets) {
+    const t = getSectorTier(a.sector);
+    tierBuckets[t].push(a);
   }
 
-  // Forward pass: order layer L by the average position of incoming parents in earlier layers
-  for (let i = 1; i < sortedLayers.length; i++) {
-    const layerIdx = sortedLayers[i];
-    const assets = layerBuckets.get(layerIdx)!;
+  const occupiedTiers = tierBuckets.filter((t) => t.length > 0).length;
 
+  // If assets are not spread across tiers, partition evenly by topological level
+  let finalTiers = tierBuckets;
+  if (occupiedTiers < 2) {
+    finalTiers = [[], [], []];
+    for (const a of dataset.assets) {
+      const gl = globalLevel.get(a.id) || 0;
+      const t = gl <= maxGlobalLevel / 3 ? 0 : gl <= (2 * maxGlobalLevel) / 3 ? 1 : 2;
+      finalTiers[t].push(a);
+    }
+  }
+
+  const activeTiers = finalTiers.filter((t) => t.length > 0);
+  const tierCount = activeTiers.length;
+
+  // 3. For each tier, arrange nodes into columns (up to 4 columns)
+  activeTiers.forEach((assets, tierIdx) => {
+    // Sort assets within tier: by global topological level, then incoming dependencies, then ID
     assets.sort((a, b) => {
-      const parentsA = incomingMap.get(a.id) || [];
-      const parentsB = incomingMap.get(b.id) || [];
-
-      const avgA = parentsA.length > 0
-        ? parentsA.reduce((sum, pid) => sum + (nodeOrderIndex.get(pid) ?? 50), 0) / parentsA.length
-        : 50;
-
-      const avgB = parentsB.length > 0
-        ? parentsB.reduce((sum, pid) => sum + (nodeOrderIndex.get(pid) ?? 50), 0) / parentsB.length
-        : 50;
-
-      if (Math.abs(avgA - avgB) > 0.001) {
-        return avgA - avgB;
-      }
-      return getSectorWeight(a.sector) - getSectorWeight(b.sector) || a.id.localeCompare(b.id);
+      const la = globalLevel.get(a.id) || 0;
+      const lb = globalLevel.get(b.id) || 0;
+      if (la !== lb) return la - lb;
+      const inA = (incomingMap.get(a.id) || []).length;
+      const inB = (incomingMap.get(b.id) || []).length;
+      if (inA !== inB) return inA - inB;
+      return a.id.localeCompare(b.id);
     });
 
-    assets.forEach((a, idx) => nodeOrderIndex.set(a.id, idx));
-  }
+    const colMap = new Map<string, number>();
+    const cols: Asset[][] = [[], [], [], []];
 
-  // Backward pass: align parents closer to their target children
-  for (let i = sortedLayers.length - 2; i >= 0; i--) {
-    const layerIdx = sortedLayers[i];
-    const assets = layerBuckets.get(layerIdx)!;
+    assets.forEach((asset) => {
+      let minCol = 0;
+      const parents = incomingMap.get(asset.id) || [];
+      parents.forEach((pid) => {
+        if (colMap.has(pid)) {
+          minCol = Math.max(minCol, colMap.get(pid)! + 1);
+        }
+      });
 
-    assets.sort((a, b) => {
-      const childrenA = outgoingMap.get(a.id) || [];
-      const childrenB = outgoingMap.get(b.id) || [];
-
-      const avgA = childrenA.length > 0
-        ? childrenA.reduce((sum, cid) => sum + (nodeOrderIndex.get(cid) ?? 50), 0) / childrenA.length
-        : nodeOrderIndex.get(a.id) ?? 50;
-
-      const avgB = childrenB.length > 0
-        ? childrenB.reduce((sum, cid) => sum + (nodeOrderIndex.get(cid) ?? 50), 0) / childrenB.length
-        : nodeOrderIndex.get(b.id) ?? 50;
-
-      if (Math.abs(avgA - avgB) > 0.001) {
-        return avgA - avgB;
+      // Target up to 4 columns with max 3-4 nodes per column
+      let bestCol = Math.min(minCol, 3);
+      for (let c = bestCol; c <= 3; c++) {
+        if (cols[c].length < 3) {
+          bestCol = c;
+          break;
+        }
       }
-      return getSectorWeight(a.sector) - getSectorWeight(b.sector) || a.id.localeCompare(b.id);
+      cols[bestCol].push(asset);
+      colMap.set(asset.id, bestCol);
     });
 
-    assets.forEach((a, idx) => nodeOrderIndex.set(a.id, idx));
-  }
+    // Vertical center for this tier centered around y = 0
+    // (e.g. For 3 tiers: tier 0 at -250, tier 1 at 0, tier 2 at +250)
+    const tierCenterY = (tierIdx - (tierCount - 1) / 2) * TIER_Y_GAP;
 
-  // 4. Compute final coordinates: vertically center each column around y = 0
-  sortedLayers.forEach((layerIdx) => {
-    const assetsInLayer = layerBuckets.get(layerIdx)!;
-    const totalHeight = assetsInLayer.length * LAYER_Y_GAP;
-    const startY = -totalHeight / 2 + LAYER_Y_GAP / 2;
+    cols.forEach((colAssets, cIdx) => {
+      const totalH = colAssets.length * LAYER_Y_GAP;
+      const startY = tierCenterY - totalH / 2 + LAYER_Y_GAP / 2;
 
-    assetsInLayer.forEach((asset, idxInLayer) => {
-      nodes.set(asset.id, {
-        asset,
-        x: layerIdx * LAYER_X_GAP,
-        y: startY + idxInLayer * LAYER_Y_GAP,
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        level: layerIdx,
+      colAssets.forEach((asset, rIdx) => {
+        nodes.set(asset.id, {
+          asset,
+          x: cIdx * LAYER_X_GAP,
+          y: startY + rIdx * LAYER_Y_GAP,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
+          level: cIdx,
+        });
       });
     });
   });

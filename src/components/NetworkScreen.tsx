@@ -32,10 +32,11 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 80,
+    padding: 40,
     minZoom: 0.25,
-    maxZoom: 2.2,
-    targetMaxZoom: 1.05,
+    maxZoom: 2.5,
+    targetMaxZoom: 1.85,
+    targetOccupancy: 0.82,
   });
 
   // Compute dependency degrees
