@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   Zap,
   Wrench,
-  ShieldCheck,
   GitFork,
   LogOut,
   Radio,
@@ -19,7 +18,6 @@ export type ScreenId =
   | 'weak-points'
   | 'failure-test'
   | 'command'
-  | 'recovery-planner'
   | 'action-lab';
 
 interface SidebarProps {
@@ -47,7 +45,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'weak-points', label: 'Weak Points', icon: <AlertTriangle className="w-4 h-4" />, requiresData: true },
     { id: 'failure-test', label: 'Failure Test', icon: <Zap className="w-4 h-4" />, requiresData: true },
     { id: 'command', label: 'Resilience Command', icon: <Radio className="w-4 h-4 text-rose-400" />, requiresData: true },
-    { id: 'recovery-planner', label: 'Recovery Planner', icon: <ShieldCheck className="w-4 h-4" />, requiresData: true },
     { id: 'action-lab', label: 'Action Lab', icon: <Wrench className="w-4 h-4" />, requiresData: true },
   ];
 
