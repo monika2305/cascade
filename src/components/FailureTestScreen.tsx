@@ -241,40 +241,53 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
       >
         <svg className="w-full h-full pointer-events-auto">
           <defs>
+            {/* Dotted Grid Pattern */}
+            <pattern
+              id="fail-dot-grid"
+              width="24"
+              height="24"
+              patternUnits="userSpaceOnUse"
+            >
+              <circle cx="2" cy="2" r="1.1" fill="#1e3850" opacity="0.75" />
+            </pattern>
+
             <marker
               id="fail-arrow-dim"
               viewBox="0 0 10 10"
-              refX="10"
+              refX="8"
               refY="5"
               markerWidth="6"
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#182c3f" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#182c3f" />
             </marker>
             <marker
               id="fail-arrow-active"
               viewBox="0 0 10 10"
-              refX="10"
+              refX="8"
               refY="5"
               markerWidth="7"
               markerHeight="7"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f59e0b" />
             </marker>
             <marker
               id="fail-arrow-initial"
               viewBox="0 0 10 10"
-              refX="10"
+              refX="8"
               refY="5"
               markerWidth="7"
               markerHeight="7"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ef4444" />
             </marker>
           </defs>
+
+          {/* Dotted Canvas Grid Background */}
+          <rect width="100%" height="100%" fill="url(#fail-dot-grid)" className="pointer-events-none" />
 
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
             {/* Dependencies */}
@@ -288,10 +301,10 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
               const x2 = tgt.x;
               const y2 = tgt.y + tgt.height / 2;
 
-              const dx = x2 - x1;
-              const c1x = x1 + dx * 0.45;
+              const dx = Math.abs(x2 - x1);
+              const c1x = x1 + Math.max(dx * 0.45, 35);
               const c1y = y1;
-              const c2x = x1 + dx * 0.55;
+              const c2x = x2 - Math.max(dx * 0.45, 35);
               const c2y = y2;
               const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
@@ -306,22 +319,23 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
                 (srcVisual === 'failed' || srcVisual === 'affected') &&
                 (tgtVisual === 'failed' || tgtVisual === 'affected');
 
+              const edgeColor = isActive
+                ? srcVisual === 'failed'
+                  ? '#ef4444'
+                  : '#f59e0b'
+                : isSimulating
+                ? '#142232'
+                : '#182c3f';
+
               return (
                 <path
                   key={`dep-${idx}`}
                   d={pathD}
                   fill="none"
-                  stroke={
-                    isActive
-                      ? srcVisual === 'failed'
-                        ? '#ef4444'
-                        : '#f97316'
-                      : isSimulating
-                      ? '#142232'
-                      : '#182c3f'
-                  }
-                  strokeWidth={isActive ? 2.5 : 1.2}
-                  strokeDasharray={isActive ? '4 2' : undefined}
+                  stroke={edgeColor}
+                  strokeWidth={isActive ? 2.2 : 1.3}
+                  strokeOpacity={isActive ? 1 : isSimulating ? 0.3 : 0.65}
+                  strokeDasharray={isActive ? '5 3' : undefined}
                   markerEnd={
                     isActive
                       ? srcVisual === 'failed'
@@ -340,29 +354,31 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
               const visualState = getNodeVisualState(asset.id);
               const info = cascadeResult.affectedNodes.get(asset.id);
               const sectorCfg = getSectorConfig(asset.sector);
+              const SectorIcon = sectorCfg.icon;
 
-              let bgColor = '#0a1726';
-              let borderColor = '#182c3f';
-              let textColor = '#f2f4f0';
+              let bgColor = '#08131e';
+              let borderColor = sectorCfg.borderHex;
+              let glowColor = '';
+              let isDimmedNode = false;
               let badgeText = '';
               let badgeBg = '';
 
               if (visualState === 'failed') {
-                bgColor = '#2a0e14';
+                bgColor = '#22080d';
                 borderColor = '#ef4444';
-                textColor = '#ffffff';
+                glowColor = 'rgba(239, 68, 68, 0.55)';
                 badgeText = 'FAILED';
                 badgeBg = 'bg-red-600 text-white';
               } else if (visualState === 'affected') {
-                bgColor = '#261405';
-                borderColor = '#f97316';
-                textColor = '#ffffff';
+                bgColor = '#1e1106';
+                borderColor = '#f59e0b';
+                glowColor = 'rgba(245, 158, 11, 0.55)';
                 badgeText = `STEP ${info?.step}`;
                 badgeBg = 'bg-amber-500 text-slate-950 font-bold';
               } else if (visualState === 'dimmed') {
-                textColor = '#475e75';
-                borderColor = '#121f2d';
                 bgColor = '#07121c';
+                borderColor = '#182c3f';
+                isDimmedNode = true;
               }
 
               return (
@@ -377,51 +393,80 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
                   }}
                   className={`group ${visualState === 'affected' ? 'cursor-pointer' : 'cursor-default'}`}
                 >
-                  {visualState === 'failed' && (
+                  {/* Outer Glow for Failed or Affected */}
+                  {glowColor && (
                     <rect
-                      x={-4}
-                      y={-4}
-                      width={node.width + 8}
-                      height={node.height + 8}
-                      rx={12}
+                      x={-3}
+                      y={-3}
+                      width={node.width + 6}
+                      height={node.height + 6}
+                      rx={17}
                       fill="none"
-                      stroke="#ef4444"
+                      stroke={borderColor}
                       strokeWidth={2}
-                      className="animate-pulse"
+                      strokeOpacity={0.85}
+                      style={{ filter: `drop-shadow(0 0 10px ${glowColor})` }}
                     />
                   )}
 
-                  {/* Main Card */}
+                  {/* Main Card Surface */}
                   <rect
                     x={0}
                     y={0}
                     width={node.width}
                     height={node.height}
-                    rx={10}
+                    rx={14}
                     fill={bgColor}
                     stroke={borderColor}
-                    strokeWidth={visualState === 'failed' || visualState === 'affected' ? 2 : 1}
-                    className="transition-colors duration-200"
+                    strokeWidth={visualState === 'failed' || visualState === 'affected' ? 1.8 : 1.3}
+                    strokeOpacity={isDimmedNode ? 0.35 : 1}
+                    className="transition-all duration-200"
                   />
 
-                  {/* Sector Indicator Strip */}
+                  {/* Left Icon Container Box */}
                   <rect
-                    x={0}
-                    y={0}
-                    width={5}
-                    height={node.height}
-                    rx={2}
-                    fill={sectorCfg.color}
+                    x={10}
+                    y={10}
+                    width={36}
+                    height={36}
+                    rx={9}
+                    fill={
+                      visualState === 'failed'
+                        ? 'rgba(239, 68, 68, 0.15)'
+                        : visualState === 'affected'
+                        ? 'rgba(245, 158, 11, 0.15)'
+                        : sectorCfg.bgHex
+                    }
+                    stroke={borderColor}
+                    strokeWidth={1}
+                    strokeOpacity={isDimmedNode ? 0.2 : 0.45}
                   />
 
-                  {/* Node Label */}
+                  <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
+                    <div
+                      className="w-full h-full flex items-center justify-center transition-opacity"
+                      style={{
+                        color:
+                          visualState === 'failed'
+                            ? '#ef4444'
+                            : visualState === 'affected'
+                            ? '#f59e0b'
+                            : sectorCfg.hex,
+                        opacity: isDimmedNode ? 0.35 : 1,
+                      }}
+                    >
+                      <SectorIcon className="w-4 h-4" />
+                    </div>
+                  </foreignObject>
+
+                  {/* Asset Name Label */}
                   <text
-                    x={14}
-                    y={24}
-                    fill={textColor}
-                    fontSize="12"
-                    fontWeight="700"
-                    className="pointer-events-none"
+                    x={56}
+                    y={26}
+                    fill={isDimmedNode ? '#64748b' : '#f2f4f0'}
+                    fontSize="12.5"
+                    fontWeight="600"
+                    className="pointer-events-none tracking-tight select-none"
                   >
                     {asset.name.length > 17
                       ? asset.name.substring(0, 15) + '...'
@@ -430,17 +475,17 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
                   {/* Sector Subtitle */}
                   <text
-                    x={14}
-                    y={42}
-                    fill={visualState === 'dimmed' ? '#334155' : '#94a3b8'}
+                    x={56}
+                    y={43}
+                    fill={isDimmedNode ? '#475569' : '#8096a4'}
                     fontSize="10"
-                    fontWeight="500"
-                    className="pointer-events-none"
+                    fontWeight="400"
+                    className="pointer-events-none tracking-wide select-none"
                   >
                     {asset.sector}
                   </text>
 
-                  {/* Badge */}
+                  {/* Status Badge */}
                   {badgeText && (
                     <foreignObject
                       x={node.width - 66}

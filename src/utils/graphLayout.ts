@@ -1,4 +1,5 @@
 import type { Asset, InfrastructureDataset } from '../types/infrastructure';
+import { getSectorOrderIndex } from './sectorConfig';
 
 export interface LayoutNode {
   asset: Asset;
@@ -11,7 +12,7 @@ export interface LayoutNode {
 
 export const NODE_WIDTH = 210;
 export const NODE_HEIGHT = 64;
-export const LAYER_X_GAP = 280;
+export const LAYER_X_GAP = 285;
 export const LAYER_Y_GAP = 82;
 export const TIER_Y_GAP = 250;
 
@@ -64,13 +65,11 @@ export function getSectorTier(sector?: string): number {
 /**
  * Computes a clean, balanced, high-readability DAG layout for infrastructure assets.
  * 
- * Instead of stretching out horizontally into an ultra-wide ribbon (which forces extreme
- * downscaling on standard 16:9 displays and makes node labels illegible), this layout:
- * 1. Groups assets into balanced functional vertical tiers (Power & Water -> Transport & Comms -> Health & Emergency).
- * 2. Arranges assets within each tier across columns based on topological dependency order.
- * 3. Enforces that downstream assets never appear before their upstream dependencies.
- * 4. Yields a balanced ~16:9 aspect ratio (~1050px x 728px for sample city) allowing 75-85%
- *    canvas occupancy with large, legible node cards at 100% browser zoom.
+ * Arranges assets across 4 clean topological dependency columns (matching the reference topology):
+ * 1. Columns flow from left-to-right (Root providers -> Substations -> Distribution -> Endpoints).
+ * 2. Nodes within each column are stratified by infrastructure sector order:
+ *    Power (Yellow) -> Water (Blue) -> Transport (Green) -> Communication (Purple) -> Health (Pink) -> Emergency (Red).
+ * 3. Guarantees a balanced ~16:9 widescreen aspect ratio filling 80-90% of the canvas gracefully.
  */
 export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, LayoutNode> {
   const nodes = new Map<string, LayoutNode>();
@@ -98,7 +97,7 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
     }
   }
 
-  // 1. Assign topological levels via BFS from roots
+  // 1. Assign topological levels via BFS / longest path from roots
   const globalLevel = new Map<string, number>();
   const roots = dataset.assets.filter((a) => (inDegreeMap.get(a.id) || 0) === 0);
   roots.sort((a, b) => a.id.localeCompare(b.id));
@@ -173,6 +172,9 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
   }
 
   // 2. Group assets into 3 functional vertical tiers
+  // Tier 0: Power & Water (Top)
+  // Tier 1: Transport & Communication (Middle)
+  // Tier 2: Health & Emergency Services (Bottom)
   const tierBuckets: Asset[][] = [[], [], []];
   for (const a of dataset.assets) {
     const t = getSectorTier(a.sector);
@@ -195,13 +197,18 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
   const activeTiers = finalTiers.filter((t) => t.length > 0);
   const tierCount = activeTiers.length;
 
-  // 3. For each tier, arrange nodes into columns (up to 4 columns)
+  // 3. For each tier, distribute assets across columns and stratify by sector
   activeTiers.forEach((assets, tierIdx) => {
-    // Sort assets within tier: by global topological level, then incoming dependencies, then ID
+    // Sort assets within tier: by sector order first, then global topological level, then dependencies
     assets.sort((a, b) => {
+      const secA = getSectorOrderIndex(a.sector);
+      const secB = getSectorOrderIndex(b.sector);
+      if (secA !== secB) return secA - secB;
+
       const la = globalLevel.get(a.id) || 0;
       const lb = globalLevel.get(b.id) || 0;
       if (la !== lb) return la - lb;
+
       const inA = (incomingMap.get(a.id) || []).length;
       const inB = (incomingMap.get(b.id) || []).length;
       if (inA !== inB) return inA - inB;
@@ -220,7 +227,7 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
         }
       });
 
-      // Target up to 4 columns with max 3-4 nodes per column
+      // Target up to 4 columns with balanced distribution
       let bestCol = Math.min(minCol, 3);
       for (let c = bestCol; c <= 3; c++) {
         if (cols[c].length < 3) {
@@ -233,10 +240,18 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
     });
 
     // Vertical center for this tier centered around y = 0
-    // (e.g. For 3 tiers: tier 0 at -250, tier 1 at 0, tier 2 at +250)
+    // Tier 0: -250, Tier 1: 0, Tier 2: +250
     const tierCenterY = (tierIdx - (tierCount - 1) / 2) * TIER_Y_GAP;
 
     cols.forEach((colAssets, cIdx) => {
+      // Sort assets within each column by sector order
+      colAssets.sort((a, b) => {
+        const secA = getSectorOrderIndex(a.sector);
+        const secB = getSectorOrderIndex(b.sector);
+        if (secA !== secB) return secA - secB;
+        return a.name.localeCompare(b.name);
+      });
+
       const totalH = colAssets.length * LAYER_Y_GAP;
       const startY = tierCenterY - totalH / 2 + LAYER_Y_GAP / 2;
 
@@ -255,3 +270,4 @@ export function computeGraphLayout(dataset: InfrastructureDataset): Map<string, 
 
   return nodes;
 }
+

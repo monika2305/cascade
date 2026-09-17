@@ -9,6 +9,7 @@ import {
 } from '../utils/analysis';
 import { simulateCascade } from '../utils/cascade';
 import { computeGraphLayout } from '../utils/graphLayout';
+import { getSectorConfig } from '../utils/sectorConfig';
 import { useGraphViewport } from '../hooks/useGraphViewport';
 import { GraphControls } from './GraphControls';
 import {
@@ -983,6 +984,8 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
                   const status = getRecoveryNodeStatus(asset.id);
+                  const sectorCfg = getSectorConfig(asset.sector);
+                  const SectorIcon = sectorCfg.icon;
 
                   // If user clicked "SHOW STILL AFFECTED", dim other nodes
                   const isDimmedByHighlight =
@@ -990,14 +993,14 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
 
                   const isHovered = hoveredNodeId === asset.id;
 
-                  let bgColor = '#0a1726';
-                  let borderColor = '#182c3f';
-                  let textColor = '#64748b';
+                  let bgColor = '#08131e';
+                  let borderColor = sectorCfg.borderHex;
+                  let textColor = '#f2f4f0';
                   let badgeText = 'SAFE';
                   let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
 
                   if (status === 'failed') {
-                    bgColor = '#2a0e14';
+                    bgColor = '#22080d';
                     borderColor = '#ef4444';
                     textColor = '#fee2e2';
                     badgeText = 'FAILED';
@@ -1009,8 +1012,8 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     badgeText = '✓ RECOVERED';
                     badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
                   } else if (status === 'affected') {
-                    bgColor = '#261405';
-                    borderColor = '#f97316';
+                    bgColor = '#1e1106';
+                    borderColor = '#f59e0b';
                     textColor = '#ffedd5';
                     badgeText = isComplete && afterAffectedSet.has(asset.id) ? 'STILL DOWN' : 'AFFECTED';
                     badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
@@ -1020,6 +1023,8 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     textColor = '#a8e2dc';
                     badgeText = 'BACKUP FEED';
                     badgeBg = 'bg-[#a8e2dc] text-[#061019] font-semibold';
+                  } else if (status === 'not_affected') {
+                    textColor = '#8096a4';
                   }
 
                   return (
@@ -1039,7 +1044,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                           y={-3}
                           width={node.width + 6}
                           height={node.height + 6}
-                          rx={12}
+                          rx={17}
                           fill="none"
                           stroke="#10b981"
                           strokeWidth={2.5}
@@ -1054,7 +1059,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                           y={-4}
                           width={node.width + 8}
                           height={node.height + 8}
-                          rx={14}
+                          rx={17}
                           fill="none"
                           stroke="#38bdf8"
                           strokeWidth={2}
@@ -1066,34 +1071,73 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         y={0}
                         width={node.width}
                         height={node.height}
-                        rx={10}
+                        rx={14}
                         fill={bgColor}
                         stroke={borderColor}
-                        strokeWidth={status !== 'not_affected' ? 2 : 1}
+                        strokeWidth={status !== 'not_affected' ? 1.8 : 1.2}
                       />
+
+                      {/* Left Icon Container Box */}
+                      <rect
+                        x={10}
+                        y={10}
+                        width={36}
+                        height={36}
+                        rx={9}
+                        fill={
+                          status === 'recovered'
+                            ? 'rgba(16, 185, 129, 0.15)'
+                            : status === 'failed'
+                            ? 'rgba(239, 68, 68, 0.15)'
+                            : status === 'affected'
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : sectorCfg.bgHex
+                        }
+                        stroke={borderColor}
+                        strokeWidth={1}
+                        strokeOpacity={0.4}
+                      />
+
+                      <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{
+                            color:
+                              status === 'recovered'
+                                ? '#10b981'
+                                : status === 'failed'
+                                ? '#ef4444'
+                                : status === 'affected'
+                                ? '#f59e0b'
+                                : sectorCfg.hex,
+                          }}
+                        >
+                          <SectorIcon className="w-4 h-4" />
+                        </div>
+                      </foreignObject>
 
                       {/* Asset Name */}
                       <text
-                        x={14}
+                        x={56}
                         y={26}
                         fill={textColor}
-                        fontSize="12"
-                        fontWeight="700"
-                        className="pointer-events-none select-none"
+                        fontSize="12.5"
+                        fontWeight="600"
+                        className="pointer-events-none select-none tracking-tight"
                       >
-                        {asset.name.length > 18
-                          ? asset.name.substring(0, 16) + '...'
+                        {asset.name.length > 17
+                          ? asset.name.substring(0, 15) + '...'
                           : asset.name}
                       </text>
 
                       {/* Asset Sector */}
                       <text
-                        x={14}
-                        y={44}
-                        fill={status !== 'not_affected' ? '#94a3b8' : '#334155'}
+                        x={56}
+                        y={43}
+                        fill={status !== 'not_affected' ? '#94a3b8' : '#475569'}
                         fontSize="10"
-                        fontWeight="500"
-                        className="pointer-events-none select-none"
+                        fontWeight="400"
+                        className="pointer-events-none select-none tracking-wide"
                       >
                         {asset.sector}
                       </text>
@@ -1427,15 +1471,17 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
                   const status = getComparisonStatus(asset.id);
+                  const sectorCfg = getSectorConfig(asset.sector);
+                  const SectorIcon = sectorCfg.icon;
 
-                  let bgColor = '#0a1726';
-                  let borderColor = '#182c3f';
-                  let textColor = '#64748b';
+                  let bgColor = '#08131e';
+                  let borderColor = sectorCfg.borderHex;
+                  let textColor = '#f2f4f0';
                   let badgeText = 'NOT AFFECTED';
                   let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
 
                   if (status === 'failed') {
-                    bgColor = '#2a0e14';
+                    bgColor = '#22080d';
                     borderColor = '#ef4444';
                     textColor = '#fee2e2';
                     badgeText = 'FAILED';
@@ -1447,11 +1493,13 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     badgeText = 'SAVED';
                     badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
                   } else if (status === 'still_affected') {
-                    bgColor = '#261405';
-                    borderColor = '#f97316';
+                    bgColor = '#1e1106';
+                    borderColor = '#f59e0b';
                     textColor = '#ffedd5';
                     badgeText = 'STILL AFFECTED';
                     badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
+                  } else if (status === 'not_affected') {
+                    textColor = '#8096a4';
                   }
 
                   return (
@@ -1466,7 +1514,7 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                           y={-3}
                           width={node.width + 6}
                           height={node.height + 6}
-                          rx={12}
+                          rx={17}
                           fill="none"
                           stroke="#10b981"
                           strokeWidth={2.5}
@@ -1479,19 +1527,58 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                         y={0}
                         width={node.width}
                         height={node.height}
-                        rx={10}
+                        rx={14}
                         fill={bgColor}
                         stroke={borderColor}
-                        strokeWidth={status !== 'not_affected' ? 2 : 1}
+                        strokeWidth={status !== 'not_affected' ? 1.8 : 1.2}
                       />
 
+                      {/* Left Icon Container Box */}
+                      <rect
+                        x={10}
+                        y={10}
+                        width={36}
+                        height={36}
+                        rx={9}
+                        fill={
+                          status === 'saved'
+                            ? 'rgba(16, 185, 129, 0.15)'
+                            : status === 'failed'
+                            ? 'rgba(239, 68, 68, 0.15)'
+                            : status === 'still_affected'
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : sectorCfg.bgHex
+                        }
+                        stroke={borderColor}
+                        strokeWidth={1}
+                        strokeOpacity={0.4}
+                      />
+
+                      <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{
+                            color:
+                              status === 'saved'
+                                ? '#10b981'
+                                : status === 'failed'
+                                ? '#ef4444'
+                                : status === 'still_affected'
+                                ? '#f59e0b'
+                                : sectorCfg.hex,
+                          }}
+                        >
+                          <SectorIcon className="w-4 h-4" />
+                        </div>
+                      </foreignObject>
+
                       <text
-                        x={14}
-                        y={24}
+                        x={56}
+                        y={26}
                         fill={textColor}
-                        fontSize="12"
-                        fontWeight="700"
-                        className="pointer-events-none select-none"
+                        fontSize="12.5"
+                        fontWeight="600"
+                        className="pointer-events-none select-none tracking-tight"
                       >
                         {asset.name.length > 17
                           ? asset.name.substring(0, 15) + '...'
@@ -1499,12 +1586,12 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                       </text>
 
                       <text
-                        x={14}
-                        y={42}
-                        fill={status !== 'not_affected' ? '#94a3b8' : '#334155'}
+                        x={56}
+                        y={43}
+                        fill={status !== 'not_affected' ? '#94a3b8' : '#475569'}
                         fontSize="10"
-                        fontWeight="500"
-                        className="pointer-events-none select-none"
+                        fontWeight="400"
+                        className="pointer-events-none select-none tracking-wide"
                       >
                         {asset.sector}
                       </text>
