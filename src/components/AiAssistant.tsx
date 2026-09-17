@@ -136,25 +136,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     }
   }, [dataset, activeScreen, activeFailureAsset, topWp]);
 
-  // 2. Robot Bubble Context Message
-  const robotBubbleMessage = useMemo(() => {
-    switch (activeScreen) {
-      case 'failure-test':
-        return `Want to know why ${activeFailureAsset?.name || 'this'} failed?`;
-      case 'city-twin':
-        return 'Inspect the 3D digital twin before and after cascade!';
-      case 'weak-points':
-        return `See why ${topWp?.name || 'Main Grid'} is the #1 risk.`;
-      case 'action-lab':
-        return 'Check which intervention protects the most services.';
-      case 'command':
-        return 'Need help deciding your next emergency action?';
-      default:
-        return 'Ask me about this infrastructure scenario!';
-    }
-  }, [activeScreen, activeFailureAsset, topWp]);
-
-  // 3. Grounded Answer Generator
+  // 2. Grounded Answer Generator
   const generateAnswer = (
     query: string
   ): {
@@ -365,7 +347,6 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
       <CascadeRobotMascot
         onClick={() => setIsOpen((prev) => !prev)}
         isOpen={isOpen}
-        contextMessage={robotBubbleMessage}
       />
 
       {/* Slide-in Analysis Copilot Panel */}

@@ -1,64 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import React from 'react';
 
 interface CascadeRobotMascotProps {
   onClick: () => void;
   isOpen: boolean;
-  contextMessage?: string;
 }
 
 export const CascadeRobotMascot: React.FC<CascadeRobotMascotProps> = ({
   onClick,
   isOpen,
-  contextMessage = 'Ask me about this scenario!',
 }) => {
-  const [showBubble, setShowBubble] = useState<boolean>(true);
-  const [hasDismissed, setHasDismissed] = useState<boolean>(false);
-
-  // Auto-dismiss speech bubble after 8 seconds, or immediately if panel opened
-  useEffect(() => {
-    if (isOpen) {
-      setShowBubble(false);
-      return;
-    }
-    if (hasDismissed) return;
-    setShowBubble(true);
-    const timer = window.setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-    return () => window.clearTimeout(timer);
-  }, [contextMessage, hasDismissed, isOpen]);
-
-  const handleDismissBubble = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowBubble(false);
-    setHasDismissed(true);
-  };
-
   return (
-    <div className="absolute left-6 bottom-6 z-40 flex flex-col items-start select-none pointer-events-auto">
-      {/* Speech Bubble — Positioned neatly above the robot */}
-      {showBubble && !isOpen && (
-        <div className="mb-2.5 max-w-[220px] bg-slate-900/95 border border-cyan-500/50 rounded-2xl p-2.5 shadow-xl shadow-cyan-950/50 text-xs text-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-300 relative backdrop-blur-md">
-          <button
-            onClick={handleDismissBubble}
-            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-[10px]"
-            title="Dismiss"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-          <div className="flex items-center gap-1.5 text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>CASCADE AI</span>
-          </div>
-          <p className="text-[11px] leading-snug font-medium text-slate-200">
-            {contextMessage}
-          </p>
-          {/* Arrow pointing down to robot */}
-          <div className="absolute left-6 -bottom-1.5 w-3 h-3 bg-slate-900 border-r border-b border-cyan-500/50 rotate-45" />
-        </div>
-      )}
-
+    <div className="absolute left-6 bottom-6 z-40 select-none pointer-events-auto">
       {/* Robot Trigger Button */}
       <button
         onClick={onClick}
