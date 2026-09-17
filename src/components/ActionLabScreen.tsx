@@ -9,9 +9,9 @@ import {
 } from '../utils/analysis';
 import { simulateCascade } from '../utils/cascade';
 import { computeGraphLayout } from '../utils/graphLayout';
-import { getSectorConfig } from '../utils/sectorConfig';
 import { useGraphViewport } from '../hooks/useGraphViewport';
 import { GraphControls } from './GraphControls';
+import { NetworkNodeCard } from './NetworkNodeCard';
 import {
   CheckCircle2,
   AlertCircle,
@@ -120,31 +120,10 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     return set;
   }, [result, selectedFailureId, baselineCascade, dataset]);
 
-  // Focused Subgraph Dataset for Recovery Simulator (hides unrelated nodes to prevent empty space & clutter)
-  const recoveryDataset = useMemo(() => {
-    if (!result || isFullCityView) return result?.modifiedDataset || dataset;
-
-    const baseDs = result.modifiedDataset || dataset;
-    const relevantAssets = baseDs.assets.filter((a) => relevantNodeIds.has(a.id));
-    const relevantDependencies = baseDs.dependencies.filter(
-      (d) => relevantNodeIds.has(d.source) && relevantNodeIds.has(d.target)
-    );
-
-    return {
-      ...baseDs,
-      assets: relevantAssets,
-      dependencies: relevantDependencies,
-    };
-  }, [result, dataset, relevantNodeIds, isFullCityView]);
-
-  // Layout for graph views
+  // Layout for graph views (Preserve stable city topology from City Network)
   const layoutNodes = useMemo(() => {
-    if (viewMode === 'recovery') {
-      return computeGraphLayout(recoveryDataset);
-    }
-    if (!result) return computeGraphLayout(dataset);
-    return computeGraphLayout(result.modifiedDataset);
-  }, [viewMode, recoveryDataset, result, dataset]);
+    return computeGraphLayout(dataset);
+  }, [dataset]);
 
   // Unified Graph Viewport Hook
   const {
@@ -159,19 +138,19 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 28,
+    padding: 24,
     minZoom: 0.25,
     maxZoom: 2.5,
     targetMaxZoom: 1.85,
     targetOccupancy: 0.88,
   });
 
-  // Auto-fit when switching views or toggling full city
+  // Auto-fit when switching views
   useEffect(() => {
     if (viewMode === 'comparison' || viewMode === 'recovery') {
       fitGraph(null);
     }
-  }, [viewMode, fitGraph, isFullCityView, layoutNodes]);
+  }, [viewMode, fitGraph]);
 
   const activeFix = availableFixes.find((f) => f.id === selectedFixId);
 
@@ -859,55 +838,68 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           >
             <svg className="w-full h-full pointer-events-auto">
               <defs>
+                {/* Dotted Canvas Grid Pattern */}
+                <pattern
+                  id="rec-dot-grid"
+                  width="24"
+                  height="24"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <circle cx="2" cy="2" r="1.1" fill="#1e3850" opacity="0.75" />
+                </pattern>
+
                 <marker
                   id="rec-arrow-dim"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155" />
                 </marker>
                 <marker
                   id="rec-arrow-affected"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ea580c" />
                 </marker>
                 <marker
                   id="rec-arrow-recovered"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
                 </marker>
                 <marker
                   id="rec-arrow-backup"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#06b6d4" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#06b6d4" />
                 </marker>
               </defs>
 
+              {/* Dotted Canvas Grid Background */}
+              <rect width="100%" height="100%" fill="url(#rec-dot-grid)" className="pointer-events-none" />
+
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* 10. REDUCED EDGE CLUTTER: Connections */}
-                {recoveryDataset.dependencies.map((dep, idx) => {
+                {/* 1. Curved Connections with State Overlays */}
+                {(result?.modifiedDataset || dataset).dependencies.map((dep, idx) => {
                   const src = layoutNodes.get(dep.source);
                   const tgt = layoutNodes.get(dep.target);
                   if (!src || !tgt) return null;
@@ -917,10 +909,10 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const x2 = tgt.x;
                   const y2 = tgt.y + tgt.height / 2;
 
-                  const dx = x2 - x1;
-                  const c1x = x1 + dx * 0.45;
+                  const dx = Math.abs(x2 - x1);
+                  const c1x = x1 + Math.max(dx * 0.45, 35);
                   const c1y = y1;
-                  const c2x = x1 + dx * 0.55;
+                  const c2x = x2 - Math.max(dx * 0.45, 35);
                   const c2y = y2;
                   const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
@@ -932,23 +924,22 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                     (dep.source === hoveredNodeId || dep.target === hoveredNodeId);
                   const isDimmedByHover = hoveredNodeId && !isConnectedToHovered;
 
-                  let strokeColor = '#1e293b';
+                  let strokeColor = '#182c3f';
                   let markerEnd = 'url(#rec-arrow-dim)';
-                  let strokeWidth = 1.2;
-                  let strokeOpacity = isDimmedByHover ? 0.15 : 0.4;
+                  let strokeWidth = 1.3;
+                  let strokeOpacity = isDimmedByHover ? 0.12 : 0.3;
 
                   if (isRedundant) {
                     if (recoveryIndex >= 0) {
                       strokeColor = '#10b981';
                       markerEnd = 'url(#rec-arrow-recovered)';
-                      strokeWidth = 3;
+                      strokeWidth = 2.8;
                       strokeOpacity = isDimmedByHover ? 0.25 : 1;
                     } else {
                       strokeColor = '#334155';
                       strokeWidth = 1.5;
                     }
                   } else if (tgtStatus === 'recovered') {
-                    // Feed line into a recovered node illuminates strong green
                     strokeColor = '#10b981';
                     markerEnd = 'url(#rec-arrow-recovered)';
                     strokeWidth = 2.4;
@@ -956,12 +947,12 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   } else if (tgtStatus === 'affected' || tgtStatus === 'failed') {
                     strokeColor = '#ea580c';
                     markerEnd = 'url(#rec-arrow-affected)';
-                    strokeWidth = 1.8;
+                    strokeWidth = 2.0;
                     strokeOpacity = isDimmedByHover ? 0.2 : 0.85;
                   }
 
                   if (isConnectedToHovered) {
-                    strokeWidth = 3.5;
+                    strokeWidth = 3;
                     strokeOpacity = 1;
                   }
 
@@ -980,182 +971,58 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   );
                 })}
 
-                {/* 5. NODE DESIGN: Clean, Legible, Unmistakable */}
+                {/* 2. Nodes with Shared Node Presentation */}
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
                   const status = getRecoveryNodeStatus(asset.id);
-                  const sectorCfg = getSectorConfig(asset.sector);
-                  const SectorIcon = sectorCfg.icon;
 
-                  // If user clicked "SHOW STILL AFFECTED", dim other nodes
                   const isDimmedByHighlight =
                     highlightMode === 'still_affected' && status !== 'affected' && status !== 'failed';
 
-                  const isHovered = hoveredNodeId === asset.id;
-
-                  let bgColor = '#08131e';
-                  let borderColor = sectorCfg.borderHex;
-                  let textColor = '#f2f4f0';
-                  let badgeText = 'SAFE';
-                  let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
+                  let cardStatus: 'normal' | 'failed' | 'affected' | 'recovered' | 'backup_source' | 'dimmed' = 'dimmed';
+                  let badgeText = '';
+                  let badgeBg = '';
 
                   if (status === 'failed') {
-                    bgColor = '#22080d';
-                    borderColor = '#ef4444';
-                    textColor = '#fee2e2';
+                    cardStatus = 'failed';
                     badgeText = 'FAILED';
-                    badgeBg = 'bg-red-600 text-white font-semibold';
+                    badgeBg = 'bg-red-600 text-white font-bold';
                   } else if (status === 'recovered') {
-                    bgColor = '#07261e';
-                    borderColor = '#10b981';
-                    textColor = '#d1fae5';
+                    cardStatus = 'recovered';
                     badgeText = '✓ RECOVERED';
-                    badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
+                    badgeBg = 'bg-emerald-500 text-slate-950 font-bold';
                   } else if (status === 'affected') {
-                    bgColor = '#1e1106';
-                    borderColor = '#f59e0b';
-                    textColor = '#ffedd5';
+                    cardStatus = 'affected';
                     badgeText = isComplete && afterAffectedSet.has(asset.id) ? 'STILL DOWN' : 'AFFECTED';
-                    badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-bold';
                   } else if (status === 'backup_source') {
-                    bgColor = '#08252a';
-                    borderColor = '#a8e2dc';
-                    textColor = '#a8e2dc';
+                    cardStatus = 'backup_source';
                     badgeText = 'BACKUP FEED';
-                    badgeBg = 'bg-[#a8e2dc] text-[#061019] font-semibold';
-                  } else if (status === 'not_affected') {
-                    textColor = '#8096a4';
+                    badgeBg = 'bg-[#a8e2dc] text-[#061019] font-bold';
+                  } else {
+                    cardStatus = 'dimmed';
                   }
 
                   return (
-                    <g
+                    <NetworkNodeCard
                       key={asset.id}
-                      transform={`translate(${node.x}, ${node.y})`}
+                      node={node}
+                      asset={asset}
+                      status={cardStatus}
+                      badgeText={badgeText}
+                      badgeBg={badgeBg}
+                      isHovered={hoveredNodeId === asset.id}
                       onMouseEnter={() => setHoveredNodeId(asset.id)}
                       onMouseLeave={() => setHoveredNodeId(null)}
-                      className={`cursor-pointer transition-all duration-300 ${
-                        isDimmedByHighlight ? 'opacity-30' : 'opacity-100'
-                      }`}
-                    >
-                      {/* Pulsing glow for recovered nodes */}
-                      {status === 'recovered' && (
-                        <rect
-                          x={-3}
-                          y={-3}
-                          width={node.width + 6}
-                          height={node.height + 6}
-                          rx={17}
-                          fill="none"
-                          stroke="#10b981"
-                          strokeWidth={2.5}
-                          className="animate-pulse"
-                        />
-                      )}
-
-                      {/* Hover ring */}
-                      {isHovered && (
-                        <rect
-                          x={-4}
-                          y={-4}
-                          width={node.width + 8}
-                          height={node.height + 8}
-                          rx={17}
-                          fill="none"
-                          stroke="#38bdf8"
-                          strokeWidth={2}
-                        />
-                      )}
-
-                      <rect
-                        x={0}
-                        y={0}
-                        width={node.width}
-                        height={node.height}
-                        rx={14}
-                        fill={bgColor}
-                        stroke={borderColor}
-                        strokeWidth={status !== 'not_affected' ? 1.8 : 1.2}
-                      />
-
-                      {/* Left Icon Container Box */}
-                      <rect
-                        x={10}
-                        y={10}
-                        width={36}
-                        height={36}
-                        rx={9}
-                        fill={
-                          status === 'recovered'
-                            ? 'rgba(16, 185, 129, 0.15)'
-                            : status === 'failed'
-                            ? 'rgba(239, 68, 68, 0.15)'
-                            : status === 'affected'
-                            ? 'rgba(245, 158, 11, 0.15)'
-                            : sectorCfg.bgHex
+                      onClick={() => {
+                        if (status === 'recovered') {
+                          setDetailDrawer('recovered');
+                        } else if (status === 'affected') {
+                          setDetailDrawer('still_affected');
                         }
-                        stroke={borderColor}
-                        strokeWidth={1}
-                        strokeOpacity={0.4}
-                      />
-
-                      <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
-                        <div
-                          className="w-full h-full flex items-center justify-center"
-                          style={{
-                            color:
-                              status === 'recovered'
-                                ? '#10b981'
-                                : status === 'failed'
-                                ? '#ef4444'
-                                : status === 'affected'
-                                ? '#f59e0b'
-                                : sectorCfg.hex,
-                          }}
-                        >
-                          <SectorIcon className="w-4 h-4" />
-                        </div>
-                      </foreignObject>
-
-                      {/* Asset Name */}
-                      <text
-                        x={56}
-                        y={26}
-                        fill={textColor}
-                        fontSize="12.5"
-                        fontWeight="600"
-                        className="pointer-events-none select-none tracking-tight"
-                      >
-                        {asset.name.length > 17
-                          ? asset.name.substring(0, 15) + '...'
-                          : asset.name}
-                      </text>
-
-                      {/* Asset Sector */}
-                      <text
-                        x={56}
-                        y={43}
-                        fill={status !== 'not_affected' ? '#94a3b8' : '#475569'}
-                        fontSize="10"
-                        fontWeight="400"
-                        className="pointer-events-none select-none tracking-wide"
-                      >
-                        {asset.sector}
-                      </text>
-
-                      {/* Status Badge */}
-                      <foreignObject
-                        x={node.width - (status === 'recovered' ? 100 : 88)}
-                        y={8}
-                        width={status === 'recovered' ? 92 : 80}
-                        height={22}
-                      >
-                        <div
-                          className={`text-[8px] px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
-                        >
-                          {badgeText}
-                        </div>
-                      </foreignObject>
-                    </g>
+                      }}
+                      className={isDimmedByHighlight ? 'opacity-25 transition-opacity duration-300' : 'transition-opacity duration-300'}
+                    />
                   );
                 })}
               </g>
@@ -1376,43 +1243,56 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
           >
             <svg className="w-full h-full pointer-events-auto">
               <defs>
+                {/* Dotted Canvas Grid Pattern */}
+                <pattern
+                  id="after-dot-grid"
+                  width="24"
+                  height="24"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <circle cx="2" cy="2" r="1.1" fill="#1e3850" opacity="0.75" />
+                </pattern>
+
                 <marker
                   id="after-arrow-dim"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155" />
                 </marker>
                 <marker
                   id="after-arrow-affected"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ef4444" />
                 </marker>
                 <marker
                   id="after-arrow-protected"
                   viewBox="0 0 10 10"
-                  refX="10"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
                 </marker>
               </defs>
 
+              {/* Dotted Canvas Grid Background */}
+              <rect width="100%" height="100%" fill="url(#after-dot-grid)" className="pointer-events-none" />
+
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* Dependencies */}
+                {/* 1. Dependencies with City Network Curved Bezier */}
                 {(result.modifiedDataset || dataset).dependencies.map((dep, idx) => {
                   const src = layoutNodes.get(dep.source);
                   const tgt = layoutNodes.get(dep.target);
@@ -1423,35 +1303,39 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                   const x2 = tgt.x;
                   const y2 = tgt.y + tgt.height / 2;
 
-                  const dx = x2 - x1;
-                  const c1x = x1 + dx * 0.45;
+                  const dx = Math.abs(x2 - x1);
+                  const c1x = x1 + Math.max(dx * 0.45, 35);
                   const c1y = y1;
-                  const c2x = x1 + dx * 0.55;
+                  const c2x = x2 - Math.max(dx * 0.45, 35);
                   const c2y = y2;
                   const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
                   const srcStatus = getComparisonStatus(dep.source);
                   const tgtStatus = getComparisonStatus(dep.target);
 
-                  let strokeColor = '#1e293b';
+                  let strokeColor = '#182c3f';
+                  let strokeWidth = 1.3;
+                  let strokeOpacity = 0.25;
                   let markerEnd = 'url(#after-arrow-dim)';
-                  let strokeWidth = 1.2;
 
                   if (dep.id?.startsWith('redundant-')) {
                     strokeColor = '#10b981';
                     markerEnd = 'url(#after-arrow-protected)';
-                    strokeWidth = 2.5;
+                    strokeWidth = 2.8;
+                    strokeOpacity = 1;
                   } else if (tgtStatus === 'saved') {
                     strokeColor = '#10b981';
                     markerEnd = 'url(#after-arrow-protected)';
-                    strokeWidth = 2;
+                    strokeWidth = 2.4;
+                    strokeOpacity = 1;
                   } else if (
                     (srcStatus === 'failed' || srcStatus === 'still_affected') &&
                     (tgtStatus === 'failed' || tgtStatus === 'still_affected')
                   ) {
                     strokeColor = '#ef4444';
                     markerEnd = 'url(#after-arrow-affected)';
-                    strokeWidth = 2;
+                    strokeWidth = 2.0;
+                    strokeOpacity = 0.9;
                   }
 
                   return (
@@ -1461,155 +1345,48 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
                       fill="none"
                       stroke={strokeColor}
                       strokeWidth={strokeWidth}
+                      strokeOpacity={strokeOpacity}
                       markerEnd={markerEnd}
                       strokeDasharray={dep.id?.startsWith('redundant-') ? '4 3' : undefined}
+                      className="transition-all duration-300"
                     />
                   );
                 })}
 
-                {/* Nodes */}
+                {/* 2. Nodes with Shared Node Presentation */}
                 {Array.from(layoutNodes.values()).map((node) => {
                   const { asset } = node;
                   const status = getComparisonStatus(asset.id);
-                  const sectorCfg = getSectorConfig(asset.sector);
-                  const SectorIcon = sectorCfg.icon;
 
-                  let bgColor = '#08131e';
-                  let borderColor = sectorCfg.borderHex;
-                  let textColor = '#f2f4f0';
-                  let badgeText = 'NOT AFFECTED';
-                  let badgeBg = 'bg-[#071321] text-[#a9b9c3] border border-[#182c3f]';
+                  let cardStatus: 'normal' | 'failed' | 'affected' | 'recovered' | 'dimmed' = 'dimmed';
+                  let badgeText = '';
+                  let badgeBg = '';
 
                   if (status === 'failed') {
-                    bgColor = '#22080d';
-                    borderColor = '#ef4444';
-                    textColor = '#fee2e2';
+                    cardStatus = 'failed';
                     badgeText = 'FAILED';
-                    badgeBg = 'bg-red-600 text-white font-semibold';
+                    badgeBg = 'bg-red-600 text-white font-bold';
                   } else if (status === 'saved') {
-                    bgColor = '#07261e';
-                    borderColor = '#10b981';
-                    textColor = '#d1fae5';
+                    cardStatus = 'recovered';
                     badgeText = 'SAVED';
-                    badgeBg = 'bg-emerald-500 text-slate-950 font-semibold';
+                    badgeBg = 'bg-emerald-500 text-slate-950 font-bold';
                   } else if (status === 'still_affected') {
-                    bgColor = '#1e1106';
-                    borderColor = '#f59e0b';
-                    textColor = '#ffedd5';
+                    cardStatus = 'affected';
                     badgeText = 'STILL AFFECTED';
-                    badgeBg = 'bg-amber-500 text-slate-950 font-semibold';
-                  } else if (status === 'not_affected') {
-                    textColor = '#8096a4';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-bold';
+                  } else {
+                    cardStatus = 'dimmed';
                   }
 
                   return (
-                    <g
+                    <NetworkNodeCard
                       key={asset.id}
-                      transform={`translate(${node.x}, ${node.y})`}
-                      className="cursor-pointer group"
-                    >
-                      {status === 'saved' && (
-                        <rect
-                          x={-3}
-                          y={-3}
-                          width={node.width + 6}
-                          height={node.height + 6}
-                          rx={17}
-                          fill="none"
-                          stroke="#10b981"
-                          strokeWidth={2.5}
-                          className="animate-pulse"
-                        />
-                      )}
-
-                      <rect
-                        x={0}
-                        y={0}
-                        width={node.width}
-                        height={node.height}
-                        rx={14}
-                        fill={bgColor}
-                        stroke={borderColor}
-                        strokeWidth={status !== 'not_affected' ? 1.8 : 1.2}
-                      />
-
-                      {/* Left Icon Container Box */}
-                      <rect
-                        x={10}
-                        y={10}
-                        width={36}
-                        height={36}
-                        rx={9}
-                        fill={
-                          status === 'saved'
-                            ? 'rgba(16, 185, 129, 0.15)'
-                            : status === 'failed'
-                            ? 'rgba(239, 68, 68, 0.15)'
-                            : status === 'still_affected'
-                            ? 'rgba(245, 158, 11, 0.15)'
-                            : sectorCfg.bgHex
-                        }
-                        stroke={borderColor}
-                        strokeWidth={1}
-                        strokeOpacity={0.4}
-                      />
-
-                      <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
-                        <div
-                          className="w-full h-full flex items-center justify-center"
-                          style={{
-                            color:
-                              status === 'saved'
-                                ? '#10b981'
-                                : status === 'failed'
-                                ? '#ef4444'
-                                : status === 'still_affected'
-                                ? '#f59e0b'
-                                : sectorCfg.hex,
-                          }}
-                        >
-                          <SectorIcon className="w-4 h-4" />
-                        </div>
-                      </foreignObject>
-
-                      <text
-                        x={56}
-                        y={26}
-                        fill={textColor}
-                        fontSize="12.5"
-                        fontWeight="600"
-                        className="pointer-events-none select-none tracking-tight"
-                      >
-                        {asset.name.length > 17
-                          ? asset.name.substring(0, 15) + '...'
-                          : asset.name}
-                      </text>
-
-                      <text
-                        x={56}
-                        y={43}
-                        fill={status !== 'not_affected' ? '#94a3b8' : '#475569'}
-                        fontSize="10"
-                        fontWeight="400"
-                        className="pointer-events-none select-none tracking-wide"
-                      >
-                        {asset.sector}
-                      </text>
-
-                      {/* Status Badge */}
-                      <foreignObject
-                        x={node.width - (status === 'still_affected' ? 95 : 80)}
-                        y={8}
-                        width={status === 'still_affected' ? 90 : 74}
-                        height={20}
-                      >
-                        <div
-                          className={`text-[8px] px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
-                        >
-                          {badgeText}
-                        </div>
-                      </foreignObject>
-                    </g>
+                      node={node}
+                      asset={asset}
+                      status={cardStatus}
+                      badgeText={badgeText}
+                      badgeBg={badgeBg}
+                    />
                   );
                 })}
               </g>

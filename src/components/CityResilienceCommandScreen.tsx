@@ -10,10 +10,10 @@ import {
   type ContextualFix,
 } from '../utils/analysis';
 import { computeMultiStepRecoveryPlan, type RecoveryPlanResult } from '../utils/recoveryPlanner';
-import { computeGraphLayout, NODE_WIDTH, NODE_HEIGHT } from '../utils/graphLayout';
+import { computeGraphLayout } from '../utils/graphLayout';
 import { useGraphViewport } from '../hooks/useGraphViewport';
 import { GraphControls } from './GraphControls';
-import { getSectorConfig } from '../utils/sectorConfig';
+import { NetworkNodeCard } from './NetworkNodeCard';
 import {
   Radio,
   Zap,
@@ -183,37 +183,12 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
     return `${affectedCount} facilities affected across ${sectorsCount} interconnected sectors.`;
   }, [userRole, cascadeResult, assetMap, sectorsCount, affectedCount]);
 
-  // 7. Graph Viewport & Layout Setup
+  // 7. Graph Viewport & Layout Setup (Preserve stable city topology from City Network)
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Relevant nodes for focused display (failed asset + affected nodes + protected if tested)
-  const relevantNodeIds = useMemo(() => {
-    const set = new Set<string>();
-    set.add(failedAssetId);
-    cascadeResult.affectedNodes.forEach((_, id) => set.add(id));
-    if (testResult) {
-      testResult.savedAssetIds.forEach((id) => set.add(id));
-      testResult.afterCascade.affectedNodes.forEach((_, id) => set.add(id));
-    }
-    return set;
-  }, [failedAssetId, cascadeResult, testResult]);
-
-  // Focused dataset containing relevant nodes and their dependencies
-  const focusedDataset = useMemo(() => {
-    const assets = dataset.assets.filter((a) => relevantNodeIds.has(a.id));
-    const dependencies = dataset.dependencies.filter(
-      (d) => relevantNodeIds.has(d.source) && relevantNodeIds.has(d.target)
-    );
-    return {
-      ...dataset,
-      assets: assets.length > 0 ? assets : dataset.assets,
-      dependencies,
-    };
-  }, [dataset, relevantNodeIds]);
-
   const layoutNodes = useMemo(() => {
-    return computeGraphLayout(focusedDataset);
-  }, [focusedDataset]);
+    return computeGraphLayout(dataset);
+  }, [dataset]);
 
   const {
     zoom,
@@ -226,11 +201,11 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 28,
+    padding: 20,
     minZoom: 0.25,
     maxZoom: 2.5,
     targetMaxZoom: 1.85,
-    targetOccupancy: 0.88,
+    targetOccupancy: 0.90,
   });
 
   return (
@@ -347,70 +322,77 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
             onMouseUp={handleMouseUp}
             onWheel={handleWheel}
           >
-            {/* Subtle Grid Background */}
-            <div
-              className="absolute inset-0 pointer-events-none opacity-20"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.25) 1px, transparent 0)',
-                backgroundSize: '28px 28px',
-              }}
-            />
-
+            {/* SVG Canvas with Shared Viewport Hook */}
             <svg
-              className="w-full h-full select-none"
+              className="w-full h-full select-none pointer-events-auto"
               style={{ minWidth: '100%', minHeight: '100%' }}
             >
               <defs>
+                {/* Dotted Canvas Grid Pattern */}
+                <pattern
+                  id="cmd-dot-grid"
+                  width="24"
+                  height="24"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <circle cx="2" cy="2" r="1.1" fill="#1e3850" opacity="0.75" />
+                </pattern>
+
                 <marker
                   id="cmd-arrow-default"
                   viewBox="0 0 10 10"
-                  refX="16"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#475569" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569" />
                 </marker>
                 <marker
                   id="cmd-arrow-affected"
                   viewBox="0 0 10 10"
-                  refX="16"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#f59e0b" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f59e0b" />
                 </marker>
                 <marker
                   id="cmd-arrow-protected"
                   viewBox="0 0 10 10"
-                  refX="16"
+                  refX="8"
                   refY="5"
                   markerWidth="6"
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#10b981" />
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
                 </marker>
               </defs>
 
+              {/* Dotted Canvas Grid Background */}
+              <rect width="100%" height="100%" fill="url(#cmd-dot-grid)" className="pointer-events-none" />
+
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* 1. EDGES */}
-                {focusedDataset.dependencies.map((dep) => {
+                {/* 1. EDGES with City Network Curved Bezier */}
+                {dataset.dependencies.map((dep, idx) => {
                   const sourceNode = layoutNodes.get(dep.source);
                   const targetNode = layoutNodes.get(dep.target);
                   if (!sourceNode || !targetNode) return null;
 
-                  const x1 = sourceNode.x + NODE_WIDTH;
-                  const y1 = sourceNode.y + NODE_HEIGHT / 2;
+                  const x1 = sourceNode.x + sourceNode.width;
+                  const y1 = sourceNode.y + sourceNode.height / 2;
                   const x2 = targetNode.x;
-                  const y2 = targetNode.y + NODE_HEIGHT / 2;
-                  const dx = (x2 - x1) * 0.5;
-
-                  const pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+                  const y2 = targetNode.y + targetNode.height / 2;
+                  const dx = Math.abs(x2 - x1);
+                  const c1x = x1 + Math.max(dx * 0.45, 35);
+                  const c1y = y1;
+                  const c2x = x2 - Math.max(dx * 0.45, 35);
+                  const c2y = y2;
+                  const pathD = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
 
                   const isProtectedEdge =
                     showWhatChanged &&
@@ -423,122 +405,87 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
                     (cascadeResult.affectedNodes.has(dep.source) &&
                       cascadeResult.affectedNodes.has(dep.target));
 
-                  let strokeColor = '#334155';
-                  let strokeWidth = 1.5;
-                  let strokeDasharray: string | undefined = undefined;
+                  let strokeColor = '#182c3f';
+                  let strokeWidth = 1.3;
+                  let strokeOpacity = 0.25;
                   let markerEnd = 'url(#cmd-arrow-default)';
 
                   if (isProtectedEdge) {
                     strokeColor = '#10b981';
                     strokeWidth = 2.4;
+                    strokeOpacity = 1;
                     markerEnd = 'url(#cmd-arrow-protected)';
                   } else if (isAffectedEdge) {
                     strokeColor = '#f59e0b';
                     strokeWidth = 2.2;
+                    strokeOpacity = 1;
                     markerEnd = 'url(#cmd-arrow-affected)';
                   }
 
                   return (
                     <path
-                      key={dep.id || `${dep.source}-${dep.target}`}
+                      key={dep.id || `${dep.source}-${dep.target}-${idx}`}
                       d={pathD}
                       fill="none"
                       stroke={strokeColor}
                       strokeWidth={strokeWidth}
-                      strokeDasharray={strokeDasharray}
+                      strokeOpacity={strokeOpacity}
                       markerEnd={markerEnd}
                       className="transition-all duration-300"
                     />
                   );
                 })}
 
-                {/* 2. NODES */}
+                {/* 2. NODES with Shared Node Presentation */}
                 {Array.from(layoutNodes.values()).map((node) => {
                   const asset = assetMap.get(node.asset.id) || node.asset;
                   if (!asset) return null;
 
                   const isRootFailed = node.asset.id === failedAssetId;
-                  const isCascadeAffected = cascadeResult.affectedNodes.has(node.asset.id);
-
-                  // Status with tested action
                   const isProtected =
                     showWhatChanged &&
                     testResult &&
                     testResult.savedAssetIds.includes(node.asset.id);
-
                   const isStillAffected =
                     showWhatChanged &&
                     testResult &&
                     testResult.afterCascade.affectedNodes.has(node.asset.id);
+                  const isCascadeAffected =
+                    !showWhatChanged && cascadeResult.affectedNodes.has(node.asset.id);
 
-                  const sectorCfg = getSectorConfig(asset.sector);
-                  const SectorIcon = sectorCfg.icon;
-
-                  // Dynamic Card Styles
-                  let cardBg = 'bg-[#0a1726]/95 border-[#182c3f] text-[#f2f4f0]';
-                  let statusBadge = (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-[#071321] text-[#a9b9c3] border border-[#182c3f]">
-                      OPERATIONAL
-                    </span>
-                  );
+                  let status: 'normal' | 'failed' | 'affected' | 'protected' | 'dimmed' = 'dimmed';
+                  let badgeText = '';
+                  let badgeBg = '';
 
                   if (isRootFailed) {
-                    cardBg = 'bg-[#2a0e14] border-rose-500 text-white shadow-xl shadow-rose-950/40';
-                    statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                        FAILED
-                      </span>
-                    );
+                    status = 'failed';
+                    badgeText = 'FAILED';
+                    badgeBg = 'bg-red-600 text-white font-bold';
                   } else if (isProtected) {
-                    cardBg = 'bg-[#07261e] border-emerald-500 text-white shadow-xl shadow-emerald-950/40 ring-1 ring-emerald-400/40';
-                    statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
-                        ✓ PROTECTED
-                      </span>
-                    );
-                  } else if (showWhatChanged && isStillAffected) {
-                    cardBg = 'bg-[#261405] border-amber-500 text-white shadow-lg shadow-amber-950/30';
-                    statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                        STILL AFFECTED
-                      </span>
-                    );
+                    status = 'protected';
+                    badgeText = '✓ PROTECTED';
+                    badgeBg = 'bg-emerald-500 text-slate-950 font-bold';
+                  } else if (isStillAffected) {
+                    status = 'affected';
+                    badgeText = 'STILL AFFECTED';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-bold';
                   } else if (isCascadeAffected) {
-                    cardBg = 'bg-[#261405] border-amber-500 text-white shadow-lg shadow-amber-950/30';
-                    statusBadge = (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                        AFFECTED
-                      </span>
-                    );
+                    status = 'affected';
+                    badgeText = 'AFFECTED';
+                    badgeBg = 'bg-amber-500 text-slate-950 font-bold';
                   }
 
                   return (
-                    <foreignObject
+                    <NetworkNodeCard
                       key={node.asset.id}
-                      x={node.x}
-                      y={node.y}
-                      width={NODE_WIDTH}
-                      height={NODE_HEIGHT}
-                      className="overflow-visible cursor-pointer"
-                    >
-                      <div
-                        className={`w-full h-full rounded-xl border p-2.5 flex flex-col justify-between transition-all duration-200 ${cardBg}`}
-                      >
-                        <div className="flex items-center justify-between gap-1">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <SectorIcon className="w-3.5 h-3.5 shrink-0 text-[#a9b9c3]" />
-                            <span className="text-xs font-semibold truncate leading-tight">
-                              {asset.name}
-                            </span>
-                          </div>
-                          {statusBadge}
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-[#a9b9c3]">
-                          <span className="font-medium">{asset.sector}</span>
-                          <span className="text-[#a9b9c3]/70 font-mono text-[9px]">{asset.id}</span>
-                        </div>
-                      </div>
-                    </foreignObject>
+                      node={node}
+                      asset={asset}
+                      status={status}
+                      badgeText={badgeText}
+                      badgeBg={badgeBg}
+                      isSelected={isRootFailed}
+                      onClick={() => handleFailureChange(node.asset.id)}
+                    />
                   );
                 })}
               </g>

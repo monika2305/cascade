@@ -2,9 +2,9 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import type { InfrastructureDataset } from '../types/infrastructure';
 import { simulateCascade, getWhyPath, type CascadeResult, type WhyStep } from '../utils/cascade';
 import { computeGraphLayout } from '../utils/graphLayout';
-import { getSectorConfig } from '../utils/sectorConfig';
 import { useGraphViewport } from '../hooks/useGraphViewport';
 import { GraphControls } from './GraphControls';
+import { NetworkNodeCard } from './NetworkNodeCard';
 import { X, Zap, RotateCcw } from 'lucide-react';
 
 interface FailureTestScreenProps {
@@ -140,64 +140,62 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
   return (
     <div className="w-full h-full flex-1 flex flex-col bg-[#061019] text-[#f2f4f0] overflow-hidden relative">
-      {/* Top Header & Controls */}
-      <div className="px-6 py-4 border-b border-[#182c3f] bg-[#071321]/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shrink-0 z-10">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono tracking-[0.2em] text-[#a8e2dc] uppercase">Simulation Lab</span>
-            <span className="w-3 h-px bg-[#a8e2dc]/40"></span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-sm font-medium tracking-tight text-[#f2f4f0]">
-              Failure Cascade Analysis
-            </h2>
-
-            <div className="flex items-center gap-2 bg-[#0a1726] border border-[#182c3f] rounded-xl px-3 py-1 text-xs">
-              <span className="text-[#a9b9c3] font-medium">Trigger Asset:</span>
-              <select
-                value={failedAssetId}
-                onChange={(e) => {
-                  setFailedAssetId(e.target.value);
-                  handleReset();
-                }}
-                className="bg-[#071321] text-[#f2f4f0] font-semibold rounded-lg px-2 py-0.5 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer"
-              >
-                {dataset.assets.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.sector})
-                  </option>
-                ))}
-              </select>
+      {/* 1. Standardized Fixed-Height Header matching City Network (h-14) */}
+      <div className="h-14 px-6 border-b border-[#182c3f] bg-[#071321]/90 flex items-center justify-between shrink-0 z-10 backdrop-blur-md">
+        <div className="flex items-center gap-4 min-w-0">
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-medium tracking-[0.2em] text-[#b9cecf] uppercase">
+              <span className="w-3 h-px bg-[#addcd7]" />
+              <span>Simulation Lab</span>
             </div>
-
-            {isSimulating && (
-              <div className="flex items-center gap-3 text-xs font-mono bg-[#0a1726]/80 border border-[#182c3f] px-3 py-1 rounded-xl">
-                <span className="text-red-400 font-semibold">
-                  {cascadeResult.affectedNodes.size} Services Affected
-                </span>
-                <span className="text-[#182c3f]">•</span>
-                <span className="text-amber-400 font-semibold">
-                  {cascadeResult.sectorsReached.length} Sectors Reached
-                </span>
-                <span className="text-[#182c3f]">•</span>
-                <span className="text-[#a8e2dc] font-semibold">
-                  {cascadeResult.totalSteps} Steps
-                </span>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xs font-semibold text-[#f2f4f0] uppercase tracking-wider">
+                Failure Cascade Analysis
+              </h1>
+              {/* Trigger Outage Dropdown */}
+              <div className="flex items-center gap-1.5 text-xs text-[#a9b9c3]">
+                <span className="text-[11px] text-[#8096a4]">Trigger:</span>
+                <select
+                  value={failedAssetId}
+                  onChange={(e) => {
+                    setFailedAssetId(e.target.value);
+                    handleReset();
+                  }}
+                  className="bg-[#0a1726] text-[#f2f4f0] font-medium text-xs rounded-lg px-2 py-0.5 border border-[#182c3f] focus:outline-none focus:border-[#a8e2dc]/60 cursor-pointer max-w-[200px] truncate"
+                >
+                  {dataset.assets.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} ({a.sector})
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+            </div>
           </div>
 
-          <div className="text-xs text-[#a9b9c3] font-normal">
-            Select an infrastructure node to trigger an outage and observe deterministic cross-sector propagation.
-          </div>
+          {/* Simulation Stats Badge (inline, never shifts header height) */}
+          {isSimulating && (
+            <div className="hidden lg:flex items-center gap-2.5 text-[11px] font-mono bg-[#0a1726] border border-[#182c3f] px-3 py-1 rounded-xl">
+              <span className="text-red-400 font-semibold">
+                {cascadeResult.affectedNodes.size} Affected
+              </span>
+              <span className="text-[#182c3f]">•</span>
+              <span className="text-amber-400 font-semibold">
+                {cascadeResult.sectorsReached.length} Sectors
+              </span>
+              <span className="text-[#182c3f]">•</span>
+              <span className="text-[#a8e2dc] font-semibold">
+                {cascadeResult.totalSteps} Steps
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Buttons: START CASCADE, NEXT STEP, SHOW COMPLETE CASCADE, RESET */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Buttons: START CASCADE, NEXT STEP, SHOW COMPLETE, RESET */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleStartCascade}
-            className="px-3.5 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-lg shadow-red-950/30 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+            className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md shadow-red-950/30 flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
             <span>START CASCADE</span>
@@ -205,24 +203,25 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
 
           <button
             onClick={handleNextStep}
-            className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
+            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
           >
             NEXT STEP
           </button>
 
           <button
             onClick={handleShowComplete}
-            className="px-3.5 py-2 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors"
+            className="px-3 py-1.5 bg-[#0a1726] hover:bg-[#0d1e2e] text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] hover:border-[#84979a40] cursor-pointer transition-colors hidden sm:block"
           >
             SHOW COMPLETE
           </button>
 
           <button
             onClick={handleReset}
-            className="px-3 py-2 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer flex items-center gap-1.5 transition-colors"
+            className="px-2.5 py-1.5 bg-transparent hover:bg-[#0a1726] text-[#a9b9c3] hover:text-[#f2f4f0] font-medium text-xs rounded-xl border border-[#182c3f] cursor-pointer flex items-center gap-1 transition-colors"
+            title="Reset Simulation"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>RESET</span>
+            <span className="hidden md:inline">RESET</span>
           </button>
         </div>
       </div>
@@ -348,159 +347,38 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
               );
             })}
 
-            {/* Asset Nodes */}
+            {/* Asset Nodes with Shared Node Presentation */}
             {Array.from(layoutNodes.values()).map((node) => {
               const { asset } = node;
               const visualState = getNodeVisualState(asset.id);
               const info = cascadeResult.affectedNodes.get(asset.id);
-              const sectorCfg = getSectorConfig(asset.sector);
-              const SectorIcon = sectorCfg.icon;
 
-              let bgColor = '#08131e';
-              let borderColor = sectorCfg.borderHex;
-              let glowColor = '';
-              let isDimmedNode = false;
               let badgeText = '';
               let badgeBg = '';
 
               if (visualState === 'failed') {
-                bgColor = '#22080d';
-                borderColor = '#ef4444';
-                glowColor = 'rgba(239, 68, 68, 0.55)';
                 badgeText = 'FAILED';
-                badgeBg = 'bg-red-600 text-white';
+                badgeBg = 'bg-red-600 text-white font-bold';
               } else if (visualState === 'affected') {
-                bgColor = '#1e1106';
-                borderColor = '#f59e0b';
-                glowColor = 'rgba(245, 158, 11, 0.55)';
-                badgeText = `STEP ${info?.step}`;
+                badgeText = `STEP ${info?.step ?? 1}`;
                 badgeBg = 'bg-amber-500 text-slate-950 font-bold';
-              } else if (visualState === 'dimmed') {
-                bgColor = '#07121c';
-                borderColor = '#182c3f';
-                isDimmedNode = true;
               }
 
               return (
-                <g
+                <NetworkNodeCard
                   key={asset.id}
-                  transform={`translate(${node.x}, ${node.y})`}
+                  node={node}
+                  asset={asset}
+                  status={visualState}
+                  badgeText={badgeText}
+                  badgeBg={badgeBg}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (visualState === 'affected') {
                       setWhyNodeId(asset.id);
                     }
                   }}
-                  className={`group ${visualState === 'affected' ? 'cursor-pointer' : 'cursor-default'}`}
-                >
-                  {/* Outer Glow for Failed or Affected */}
-                  {glowColor && (
-                    <rect
-                      x={-3}
-                      y={-3}
-                      width={node.width + 6}
-                      height={node.height + 6}
-                      rx={17}
-                      fill="none"
-                      stroke={borderColor}
-                      strokeWidth={2}
-                      strokeOpacity={0.85}
-                      style={{ filter: `drop-shadow(0 0 10px ${glowColor})` }}
-                    />
-                  )}
-
-                  {/* Main Card Surface */}
-                  <rect
-                    x={0}
-                    y={0}
-                    width={node.width}
-                    height={node.height}
-                    rx={14}
-                    fill={bgColor}
-                    stroke={borderColor}
-                    strokeWidth={visualState === 'failed' || visualState === 'affected' ? 1.8 : 1.3}
-                    strokeOpacity={isDimmedNode ? 0.35 : 1}
-                    className="transition-all duration-200"
-                  />
-
-                  {/* Left Icon Container Box */}
-                  <rect
-                    x={10}
-                    y={10}
-                    width={36}
-                    height={36}
-                    rx={9}
-                    fill={
-                      visualState === 'failed'
-                        ? 'rgba(239, 68, 68, 0.15)'
-                        : visualState === 'affected'
-                        ? 'rgba(245, 158, 11, 0.15)'
-                        : sectorCfg.bgHex
-                    }
-                    stroke={borderColor}
-                    strokeWidth={1}
-                    strokeOpacity={isDimmedNode ? 0.2 : 0.45}
-                  />
-
-                  <foreignObject x={10} y={10} width={36} height={36} className="pointer-events-none">
-                    <div
-                      className="w-full h-full flex items-center justify-center transition-opacity"
-                      style={{
-                        color:
-                          visualState === 'failed'
-                            ? '#ef4444'
-                            : visualState === 'affected'
-                            ? '#f59e0b'
-                            : sectorCfg.hex,
-                        opacity: isDimmedNode ? 0.35 : 1,
-                      }}
-                    >
-                      <SectorIcon className="w-4 h-4" />
-                    </div>
-                  </foreignObject>
-
-                  {/* Asset Name Label */}
-                  <text
-                    x={56}
-                    y={26}
-                    fill={isDimmedNode ? '#64748b' : '#f2f4f0'}
-                    fontSize="12.5"
-                    fontWeight="600"
-                    className="pointer-events-none tracking-tight select-none"
-                  >
-                    {asset.name.length > 17
-                      ? asset.name.substring(0, 15) + '...'
-                      : asset.name}
-                  </text>
-
-                  {/* Sector Subtitle */}
-                  <text
-                    x={56}
-                    y={43}
-                    fill={isDimmedNode ? '#475569' : '#8096a4'}
-                    fontSize="10"
-                    fontWeight="400"
-                    className="pointer-events-none tracking-wide select-none"
-                  >
-                    {asset.sector}
-                  </text>
-
-                  {/* Status Badge */}
-                  {badgeText && (
-                    <foreignObject
-                      x={node.width - 66}
-                      y={8}
-                      width={58}
-                      height={20}
-                    >
-                      <div
-                        className={`text-[9px] font-semibold px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
-                      >
-                        {badgeText}
-                      </div>
-                    </foreignObject>
-                  )}
-                </g>
+                />
               );
             })}
           </g>
