@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import type { InfrastructureDataset, ParseResult } from '../types/infrastructure';
-import { parseInfrastructureFile } from '../utils/parser';
+import { parseInfrastructureFile, buildDataset } from '../utils/parser';
 import sampleCascadeCity from '../data/sample_cascade_city.json';
 import { UploadCloud, CheckCircle2, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -41,7 +41,21 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
 
   const handleLoadSample = () => {
     setErrorMessages([]);
-    onDatasetLoaded(sampleCascadeCity as unknown as InfrastructureDataset);
+    try {
+      const parsed = parseInfrastructureFile('sample_cascade_city.json', JSON.stringify(sampleCascadeCity));
+      if (parsed.success && parsed.dataset) {
+        onDatasetLoaded(parsed.dataset);
+        return;
+      }
+    } catch {
+      // Fallback to buildDataset below
+    }
+    const built = buildDataset(
+      sampleCascadeCity.name || 'CASCADE Demo City',
+      sampleCascadeCity.assets as any,
+      sampleCascadeCity.dependencies as any
+    );
+    onDatasetLoaded(built);
   };
 
   return (
@@ -137,7 +151,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
                 <span className="text-slate-400">Connections</span>
               </div>
               <div>
-                <strong className="text-amber-400 text-base">{dataset.sectors.length}</strong>{' '}
+                <strong className="text-amber-400 text-base">{(dataset.sectors || []).length}</strong>{' '}
                 <span className="text-slate-400">Sectors</span>
               </div>
             </div>

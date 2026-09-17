@@ -105,7 +105,7 @@ export const DataPreviewScreen: React.FC<DataPreviewScreenProps> = ({
           Sectors in City
         </h3>
         <div className="flex flex-wrap gap-2.5">
-          {dataset.sectors.map((sector) => {
+          {(dataset.sectors || []).map((sector) => {
             const count = summary.sectorCounts[sector];
             return (
               <SectorBadge

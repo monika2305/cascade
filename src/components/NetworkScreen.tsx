@@ -66,7 +66,7 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
             YOUR CITY NETWORK
           </h1>
           <div className="text-xs font-mono text-cyan-400 mt-0.5">
-            {dataset.assets.length} Services • {dataset.dependencies.length} Connections • {dataset.sectors.length} Sectors
+            {dataset.assets.length} Services • {dataset.dependencies.length} Connections • {(dataset.sectors || []).length} Sectors
           </div>
         </div>
 

@@ -367,7 +367,7 @@ export const MainWorkspace: React.FC<MainWorkspaceProps> = ({
             <span>•</span>
             <span className="text-cyan-300 font-bold">{dataset.dependencies.length} Connections</span>
             <span>•</span>
-            <span className="text-amber-300 font-bold">{dataset.sectors.length} Sectors</span>
+            <span className="text-amber-300 font-bold">{(dataset.sectors || []).length} Sectors</span>
           </div>
         </div>
 

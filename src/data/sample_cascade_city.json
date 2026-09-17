@@ -536,5 +536,27 @@
       "type": "coordination",
       "strength": 1
     }
-  ]
+  ],
+  "sectors": [
+    "Power",
+    "Water",
+    "Transport",
+    "Health",
+    "Communication",
+    "Emergency Services"
+  ],
+  "summary": {
+    "assetCount": 28,
+    "dependencyCount": 40,
+    "sectorCount": 6,
+    "sectorCounts": {
+      "Power": 5,
+      "Water": 6,
+      "Transport": 5,
+      "Health": 4,
+      "Communication": 4,
+      "Emergency Services": 4,
+      "Other": 0
+    }
+  }
 }

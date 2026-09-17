@@ -183,7 +183,7 @@ export const WeakPointModal: React.FC<WeakPointModalProps> = ({
                   >
                     All Sectors
                   </button>
-                  {dataset.sectors.map((sec) => (
+                  {(dataset.sectors || []).map((sec) => (
                     <button
                       key={sec}
                       onClick={() => setSectorFilter(sec)}

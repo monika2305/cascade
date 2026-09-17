@@ -26,7 +26,20 @@ export interface UseGraphViewportOptions {
 export function calculateGraphBounds(
   layoutNodes: Map<string, LayoutNode>,
   subsetIds?: string[] | Set<string> | null
-): GraphBounds {
+) {
+  if (!layoutNodes || layoutNodes.size === 0) {
+    return {
+      minX: 0,
+      maxX: 400,
+      minY: 0,
+      maxY: 300,
+      graphWidth: 400,
+      graphHeight: 300,
+      cx: 200,
+      cy: 150,
+    };
+  }
+
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
@@ -40,14 +53,19 @@ export function calculateGraphBounds(
 
   layoutNodes.forEach((node, id) => {
     if (idSet && !idSet.has(id)) return;
-    minX = Math.min(minX, node.x);
-    maxX = Math.max(maxX, node.x + node.width);
-    minY = Math.min(minY, node.y);
-    maxY = Math.max(maxY, node.y + node.height);
+    const nx = Number.isFinite(node.x) ? node.x : 0;
+    const ny = Number.isFinite(node.y) ? node.y : 0;
+    const nw = Number.isFinite(node.width) && node.width > 0 ? node.width : 210;
+    const nh = Number.isFinite(node.height) && node.height > 0 ? node.height : 64;
+
+    minX = Math.min(minX, nx);
+    maxX = Math.max(maxX, nx + nw);
+    minY = Math.min(minY, ny);
+    maxY = Math.max(maxY, ny + nh);
   });
 
   // Fallback if subset is empty or invalid
-  if (!Number.isFinite(minX)) {
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
     // If subset didn't match, calculate for all nodes
     if (idSet && idSet.size > 0 && layoutNodes.size > 0) {
       return calculateGraphBounds(layoutNodes, null);
@@ -111,26 +129,33 @@ export function useGraphViewport(
       }
       const targetSubset = subsetIds !== undefined ? subsetIds : activeSubsetRef.current;
 
-      if (!containerRef.current || layoutNodes.size === 0) return;
+      if (!containerRef.current || !layoutNodes || layoutNodes.size === 0) return;
       const rect = containerRef.current.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-
-      hasUserInteractedRef.current = false;
+      if (!rect || rect.width <= 0 || rect.height <= 0) return;
 
       const bounds = calculateGraphBounds(layoutNodes, targetSubset);
+      if (!bounds || bounds.graphWidth <= 0 || bounds.graphHeight <= 0) return;
+      if (!Number.isFinite(bounds.graphWidth) || !Number.isFinite(bounds.graphHeight)) return;
+
       const availWidth = Math.max(rect.width * targetOccupancy - padding, 80);
       const availHeight = Math.max(rect.height * targetOccupancy - padding, 80);
 
       const scaleX = availWidth / bounds.graphWidth;
       const scaleY = availHeight / bounds.graphHeight;
+      if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) return;
+
       const fitScale = Math.min(scaleX, scaleY);
       const optimalZoom = Math.max(minZoom, Math.min(targetMaxZoom, fitScale));
+      if (!Number.isFinite(optimalZoom) || optimalZoom <= 0) return;
 
       const newPanX = rect.width / 2 - bounds.cx * optimalZoom;
       const newPanY = rect.height / 2 - bounds.cy * optimalZoom;
+      if (!Number.isFinite(newPanX) || !Number.isFinite(newPanY)) return;
 
-      setZoom(optimalZoom);
-      setPan({ x: newPanX, y: newPanY });
+      hasUserInteractedRef.current = false;
+
+      setZoom((prev) => (Math.abs(prev - optimalZoom) > 0.001 ? optimalZoom : prev));
+      setPan((prev) => (Math.abs(prev.x - newPanX) > 0.5 || Math.abs(prev.y - newPanY) > 0.5 ? { x: newPanX, y: newPanY } : prev));
     },
     [containerRef, layoutNodes, padding, minZoom, targetMaxZoom, targetOccupancy]
   );
@@ -140,8 +165,11 @@ export function useGraphViewport(
     let animationFrameId: number;
 
     const performInitialFit = () => {
-      if (containerRef.current && layoutNodes.size > 0) {
-        fitGraph(activeSubsetRef.current);
+      if (containerRef.current && layoutNodes && layoutNodes.size > 0) {
+        const rect = containerRef.current.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          fitGraph(activeSubsetRef.current);
+        }
       }
     };
 
@@ -152,20 +180,27 @@ export function useGraphViewport(
   // ResizeObserver to automatically adjust on window/container resize
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el || typeof ResizeObserver === 'undefined') return;
 
+    let rafId: number | null = null;
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
           if (!hasUserInteractedRef.current) {
-            fitGraph(activeSubsetRef.current);
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+              fitGraph(activeSubsetRef.current);
+            });
           }
         }
       }
     });
 
     resizeObserver.observe(el);
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [containerRef, fitGraph]);
 
   // Zoom controls
