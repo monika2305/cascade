@@ -370,7 +370,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
       {/* Slide-in Analysis Copilot Panel */}
       {isOpen && (
-        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 w-[360px] sm:w-[410px] h-[580px] max-h-[88vh] bg-slate-900/98 border border-cyan-500/40 rounded-3xl shadow-2xl shadow-cyan-950/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200 backdrop-blur-xl select-none">
+        <div className="absolute left-6 bottom-22 z-50 w-[360px] sm:w-[410px] h-[560px] max-h-[calc(100vh-7rem)] bg-slate-900/98 border border-cyan-500/40 rounded-3xl shadow-2xl shadow-cyan-950/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-left-6 duration-200 backdrop-blur-xl select-none">
           {/* Header */}
           <div className="px-4 py-3 bg-slate-950/95 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">

@@ -15,15 +15,19 @@ export const CascadeRobotMascot: React.FC<CascadeRobotMascotProps> = ({
   const [showBubble, setShowBubble] = useState<boolean>(true);
   const [hasDismissed, setHasDismissed] = useState<boolean>(false);
 
-  // Auto-dismiss speech bubble after 8 seconds
+  // Auto-dismiss speech bubble after 8 seconds, or immediately if panel opened
   useEffect(() => {
+    if (isOpen) {
+      setShowBubble(false);
+      return;
+    }
     if (hasDismissed) return;
     setShowBubble(true);
     const timer = window.setTimeout(() => {
       setShowBubble(false);
     }, 8000);
     return () => window.clearTimeout(timer);
-  }, [contextMessage, hasDismissed]);
+  }, [contextMessage, hasDismissed, isOpen]);
 
   const handleDismissBubble = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,13 +36,13 @@ export const CascadeRobotMascot: React.FC<CascadeRobotMascotProps> = ({
   };
 
   return (
-    <div className="fixed right-6 bottom-20 z-40 flex items-end justify-end select-none pointer-events-auto">
-      {/* Speech Bubble */}
+    <div className="absolute left-6 bottom-6 z-40 flex flex-col items-start select-none pointer-events-auto">
+      {/* Speech Bubble — Positioned neatly above the robot */}
       {showBubble && !isOpen && (
-        <div className="mr-3 mb-2 max-w-[210px] bg-slate-900/95 border border-cyan-500/50 rounded-2xl p-2.5 shadow-xl shadow-cyan-950/50 text-xs text-slate-100 animate-in fade-in slide-in-from-right-2 duration-300 relative backdrop-blur-md">
+        <div className="mb-2.5 max-w-[220px] bg-slate-900/95 border border-cyan-500/50 rounded-2xl p-2.5 shadow-xl shadow-cyan-950/50 text-xs text-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-300 relative backdrop-blur-md">
           <button
             onClick={handleDismissBubble}
-            className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-[10px]"
+            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-[10px]"
             title="Dismiss"
           >
             <X className="w-2.5 h-2.5" />
@@ -50,8 +54,8 @@ export const CascadeRobotMascot: React.FC<CascadeRobotMascotProps> = ({
           <p className="text-[11px] leading-snug font-medium text-slate-200">
             {contextMessage}
           </p>
-          {/* Arrow pointing right to robot */}
-          <div className="absolute -right-1.5 bottom-3.5 w-3 h-3 bg-slate-900 border-r border-t border-cyan-500/50 rotate-45" />
+          {/* Arrow pointing down to robot */}
+          <div className="absolute left-6 -bottom-1.5 w-3 h-3 bg-slate-900 border-r border-b border-cyan-500/50 rotate-45" />
         </div>
       )}
 
