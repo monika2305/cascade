@@ -556,14 +556,14 @@ export const CityTwinScreen: React.FC<CityTwinScreenProps> = ({
         <div className="w-14 h-14 rounded-2xl bg-cyan-950/60 border border-cyan-800 flex items-center justify-center text-cyan-400 mb-4">
           <Sparkles className="w-7 h-7" />
         </div>
-        <h2 className="text-xl font-black tracking-wider uppercase mb-2">CASCADE City Twin</h2>
+        <h2 className="text-xl font-semibold tracking-wider uppercase text-white mb-2">CASCADE City Twin</h2>
         <p className="text-sm text-slate-400 max-w-sm mb-6">
           Load or upload city infrastructure data to create the interactive digital twin.
         </p>
         {onNavigateToHome && (
           <button
             onClick={onNavigateToHome}
-            className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 cursor-pointer transition-all"
+            className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 cursor-pointer transition-all"
           >
             GO TO HOME
           </button>

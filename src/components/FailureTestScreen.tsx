@@ -60,11 +60,11 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 40,
+    padding: 28,
     minZoom: 0.25,
     maxZoom: 2.5,
     targetMaxZoom: 1.85,
-    targetOccupancy: 0.82,
+    targetOccupancy: 0.88,
   });
 
   // Animation interval ticker
@@ -449,7 +449,7 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
                       height={20}
                     >
                       <div
-                        className={`text-[9px] font-black px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
+                        className={`text-[9px] font-semibold px-1.5 py-0.5 rounded text-center tracking-wider uppercase ${badgeBg}`}
                       >
                         {badgeText}
                       </div>
@@ -466,7 +466,8 @@ export const FailureTestScreen: React.FC<FailureTestScreenProps> = ({
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
           onFit={() => fitGraph()}
-          className="absolute right-6 bottom-6"
+          fitLabel="Fit Cascade"
+          className="absolute right-6 bottom-6 z-20"
         />
 
         {/* Modal: WHY WAS THIS AFFECTED? (when orange node is clicked) */}

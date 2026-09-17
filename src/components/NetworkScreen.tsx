@@ -32,11 +32,11 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 40,
+    padding: 28,
     minZoom: 0.25,
     maxZoom: 2.5,
     targetMaxZoom: 1.85,
-    targetOccupancy: 0.82,
+    targetOccupancy: 0.88,
   });
 
   // Compute dependency degrees
@@ -231,7 +231,7 @@ export const NetworkScreen: React.FC<NetworkScreenProps> = ({ dataset }) => {
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
           onFit={() => fitGraph()}
-          className="absolute right-6 bottom-6"
+          className="absolute right-6 bottom-6 z-20"
         />
 
         {/* Small Node Inspector Popup (only when a node is clicked) */}

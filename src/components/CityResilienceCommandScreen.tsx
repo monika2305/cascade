@@ -226,9 +226,11 @@ export const CityResilienceCommandScreen: React.FC<CityResilienceCommandScreenPr
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 50,
-    targetMaxZoom: 1.75,
-    targetOccupancy: 0.82,
+    padding: 28,
+    minZoom: 0.25,
+    maxZoom: 2.5,
+    targetMaxZoom: 1.85,
+    targetOccupancy: 0.88,
   });
 
   return (

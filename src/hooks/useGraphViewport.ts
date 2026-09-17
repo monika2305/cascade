@@ -105,11 +105,11 @@ export function useGraphViewport(
   options: UseGraphViewportOptions = {}
 ) {
   const {
-    padding = 48,
+    padding = 28,
     minZoom = 0.25,
     maxZoom = 2.5,
     targetMaxZoom = 1.85,
-    targetOccupancy = 0.82,
+    targetOccupancy = 0.88,
   } = options;
 
   const [zoom, setZoom] = useState<number>(1.0);
@@ -137,8 +137,10 @@ export function useGraphViewport(
       if (!bounds || bounds.graphWidth <= 0 || bounds.graphHeight <= 0) return;
       if (!Number.isFinite(bounds.graphWidth) || !Number.isFinite(bounds.graphHeight)) return;
 
-      const availWidth = Math.max(rect.width * targetOccupancy - padding, 80);
-      const availHeight = Math.max(rect.height * targetOccupancy - padding, 80);
+      const safeWidth = Math.max(rect.width - padding * 2, 80);
+      const safeHeight = Math.max(rect.height - padding * 2, 80);
+      const availWidth = safeWidth * targetOccupancy;
+      const availHeight = safeHeight * targetOccupancy;
 
       const scaleX = availWidth / bounds.graphWidth;
       const scaleY = availHeight / bounds.graphHeight;

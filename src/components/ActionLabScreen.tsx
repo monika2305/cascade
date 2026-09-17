@@ -158,10 +158,11 @@ export const ActionLabScreen: React.FC<ActionLabScreenProps> = ({
     handleMouseUp,
     handleWheel,
   } = useGraphViewport(containerRef, layoutNodes, {
-    padding: 60,
+    padding: 28,
     minZoom: 0.25,
-    maxZoom: 2.2,
-    targetMaxZoom: 1.15,
+    maxZoom: 2.5,
+    targetMaxZoom: 1.85,
+    targetOccupancy: 0.88,
   });
 
   // Auto-fit when switching views or toggling full city
